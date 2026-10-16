@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html data-page-node-id="CrwQcOEu95OyWNxxsvmClH" lang="zh-CN">
+<head data-page-node-id="9nJSPc4P7BUiOQuUIlvgSS">
+<script data-page-node-id="6OeUrO2mHUkhWXGdQhjSIF" src="/page/page_comm/inject.js"></script>
+<meta data-page-node-id="rjk3030cB1Xe8nkyT40cLw" charset="UTF-8">
+<meta data-page-node-id="R6kio3zoQRgmJF70AiiyVk" content="width=device-width, initial-scale=1.0" name="viewport">
+<title data-page-node-id="3wzi3chg41kUfP62Ny4e9k" data-pnid-children="PjoACUPHMnTCMY3D7ZSUZu">铁幕兵棋 HEXFRONT · 可交互原型</title>
+<style data-page-node-id="deXF63ONuBbpAHhWaMUPqL" data-pnid-children="XzNtqP17rRxwbpYAuHH7BQ">
+  :root{
+    --bg:#080B12; --bg-2:#0C111B; --surface:#121927; --surface-2:#172132;
+    --border:#223049; --border-soft:#1A2435;
+    --text:#E9EFF8; --dim:#93A1B8; --faint:#5C6B82;
+    --accent:#27E0C6; --accent-2:#3DA9FC; --gold:#F5B545;
+    --danger:#FF5A65; --good:#38D39F; --warn:#F5B545;
+    --font:-apple-system,"PingFang SC","Microsoft YaHei","Segoe UI",Roboto,sans-serif;
+    --mono:"SF Mono","JetBrains Mono",Consolas,monospace;
+    --r:14px; --r-sm:9px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:var(--font);background:var(--bg);color:var(--text);
+    -webkit-font-smoothing:antialiased;overflow:hidden}
+
+  /* ===== layout ===== */
+  .app{display:flex;height:100vh}
+  .sidebar{width:272px;flex:0 0 272px;background:linear-gradient(180deg,#0B1019,#080C14);
+    border-right:1px solid var(--border);display:flex;flex-direction:column}
+  .brand{padding:22px 22px 18px;border-bottom:1px solid var(--border-soft)}
+  .brand .logo{display:flex;align-items:center;gap:11px}
+  .brand .hex{width:34px;height:38px;flex:0 0 34px}
+  .brand h1{font-size:15px;letter-spacing:.5px;font-weight:700}
+  .brand h1 span{color:var(--accent)}
+  .brand .sub{font-size:11px;color:var(--faint);margin-top:3px;letter-spacing:1px}
+  .nav{flex:1;overflow-y:auto;padding:14px 12px}
+  .nav::-webkit-scrollbar{width:6px}
+  .nav::-webkit-scrollbar-thumb{background:#1f2a3c;border-radius:3px}
+  .grp{font-size:10.5px;color:var(--faint);letter-spacing:1.5px;margin:16px 10px 7px;text-transform:uppercase}
+  .grp:first-child{margin-top:4px}
+  .navbtn{display:flex;align-items:center;gap:11px;width:100%;padding:9px 11px;border-radius:var(--r-sm);
+    color:var(--dim);background:transparent;border:none;cursor:pointer;font-size:13px;text-align:left;
+    transition:.16s;font-family:var(--font)}
+  .navbtn:hover{background:#131c2b;color:var(--text)}
+  .navbtn.active{background:linear-gradient(90deg,rgba(39,224,198,.16),rgba(39,224,198,.02));
+    color:#fff;box-shadow:inset 2px 0 0 var(--accent)}
+  .navbtn svg{width:16px;height:16px;flex:0 0 16px;opacity:.85}
+  .navbtn .tag{margin-left:auto;font-size:9px;padding:2px 6px;border-radius:20px;background:#1c2738;color:var(--faint)}
+  .navbtn .tag.hot{background:rgba(39,224,198,.18);color:var(--accent)}
+  .sidefoot{padding:14px 18px;border-top:1px solid var(--border-soft);font-size:10.5px;color:var(--faint)}
+
+  .stage{flex:1;display:flex;flex-direction:column;min-width:0}
+  .topbar{height:54px;flex:0 0 54px;border-bottom:1px solid var(--border);
+    display:flex;align-items:center;gap:14px;padding:0 24px;background:rgba(10,14,22,.6)}
+  .topbar .crumb{font-size:13px;color:var(--dim)}
+  .topbar .crumb b{color:var(--text)}
+  .topbar .pill{margin-left:auto;font-size:11px;color:var(--accent);border:1px solid rgba(39,224,198,.3);
+    padding:4px 11px;border-radius:20px;background:rgba(39,224,198,.06)}
+  .topbar .dev{font-size:11px;color:var(--faint)}
+
+  .canvas{flex:1;overflow:auto;display:flex;align-items:center;justify-content:center;padding:34px;
+    background:
+      radial-gradient(1200px 600px at 70% -10%,rgba(39,224,198,.07),transparent 60%),
+      radial-gradient(900px 500px at 10% 110%,rgba(61,169,252,.06),transparent 60%),
+      var(--bg)}
+
+  /* hex pattern overlay */
+  .canvas::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.04;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='96' viewBox='0 0 56 96'%3E%3Cpath d='M28 0L56 16v32L28 64 0 48V16z' fill='none' stroke='%23ffffff' stroke-width='1'/%3E%3Cpath d='M28 96L56 80V48M28 96L0 80V48' fill='none' stroke='%23ffffff' stroke-width='1'/%3E%3C/svg%3E");}
+
+  /* ===== device ===== */
+  .device-wrap{display:flex;align-items:center;justify-content:center}
+  .device{width:384px;height:792px;flex:0 0 384px;border-radius:44px;
+    background:#04070c;border:9px solid #05080d;
+    box-shadow:0 40px 90px rgba(0,0,0,.65),inset 0 0 0 1px #18222f,0 0 0 1px #0a0f17;
+    position:relative;overflow:hidden}
+  .device .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:150px;height:26px;
+    background:#04070c;border-radius:0 0 18px 18px;z-index:40}
+  .screen{display:none;height:100%;flex-direction:column;background:var(--bg-2);position:relative}
+  .screen.active{display:flex}
+  .s-body{flex:1;overflow-y:auto}
+  .s-body::-webkit-scrollbar{width:0}
+  .statusbar{height:30px;flex:0 0 30px;display:flex;align-items:center;justify-content:space-between;
+    padding:0 22px;font-size:11px;color:var(--dim);font-family:var(--mono);z-index:30}
+  .statusbar .right{display:flex;gap:6px;align-items:center}
+
+  .hidden{display:none!important}
+
+  /* ===== shared components ===== */
+  .pad{padding:18px}
+  .mt{margin-top:14px}.mb{margin-bottom:14px}
+  .row{display:flex;align-items:center;gap:10px}
+  .between{display:flex;align-items:center;justify-content:space-between}
+  .tagline{font-size:11px;letter-spacing:2px;color:var(--accent);text-transform:uppercase}
+  h2.t{font-size:20px;font-weight:700;margin-top:6px}
+  h3.t{font-size:15px;font-weight:600}
+  .muted{color:var(--dim)}.faint{color:var(--faint)}
+  .btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px;
+    border-radius:var(--r-sm);border:none;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);
+    transition:.15s}
+  .btn-primary{background:linear-gradient(135deg,var(--accent),#19b6a0);color:#04201c;box-shadow:0 6px 18px rgba(39,224,198,.25)}
+  .btn-primary:hover{filter:brightness(1.06)}
+  .btn-ghost{background:#15203099;color:var(--text);border:1px solid var(--border)}
+  .btn-ghost:hover{background:#1b2a3e}
+  .chip{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:4px 9px;border-radius:20px;
+    background:#17223400;border:1px solid var(--border);color:var(--dim)}
+  .chip.accent{color:var(--accent);border-color:rgba(39,224,198,.35);background:rgba(39,224,198,.07)}
+  .chip.gold{color:var(--gold);border-color:rgba(245,181,69,.35);background:rgba(245,181,69,.08)}
+  .chip.danger{color:var(--danger);border-color:rgba(255,90,101,.35);background:rgba(255,90,101,.08)}
+  .card{background:var(--surface);border:1px solid var(--border-soft);border-radius:var(--r)}
+  .card.hov:hover{border-color:rgba(39,224,198,.4);transition:.18s}
+
+  /* game top bar (inside battle etc.) */
+  .gtop{padding:10px 14px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#0e1622,#0b111b)}
+  .gtop .l1{display:flex;align-items:center;justify-content:space-between;font-size:12px}
+  .gtop .turn{font-family:var(--mono);color:var(--accent);font-weight:700}
+  .gtop .phase{color:var(--gold);font-weight:600}
+  .res{display:flex;gap:12px;margin-top:8px}
+  .res .r{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--dim);font-family:var(--mono)}
+  .dot{width:8px;height:8px;border-radius:2px}
+  .dot.oil{background:var(--gold)}.dot.ammo{background:var(--danger)}.dot.food{background:var(--good)}
+
+  /* ===== HOME ===== */
+  .home{background:
+      radial-gradient(700px 380px at 50% 0%,rgba(39,224,198,.10),transparent 55%),
+      linear-gradient(180deg,#0a121d,#070b12)}
+  .home .hero{padding:70px 30px 30px;text-align:center}
+  .home .emblem{width:96px;height:104px;margin:0 auto 18px;filter:drop-shadow(0 0 22px rgba(39,224,198,.35))}
+  .home .title{font-size:30px;font-weight:800;letter-spacing:3px}
+  .home .title span{color:var(--accent)}
+  .home .en{font-family:var(--mono);font-size:12px;color:var(--faint);letter-spacing:6px;margin-top:6px}
+  .home .desc{font-size:12.5px;color:var(--dim);margin-top:14px;line-height:1.7;padding:0 14px}
+  .home .menu{padding:24px 26px;display:flex;flex-direction:column;gap:12px}
+  .continue{background:linear-gradient(135deg,rgba(39,224,198,.14),rgba(61,169,252,.06));
+    border:1px solid rgba(39,224,198,.3);border-radius:var(--r);padding:14px 16px;cursor:pointer}
+  .continue:hover{border-color:var(--accent)}
+  .continue .lab{font-size:11px;color:var(--accent);letter-spacing:1px}
+  .continue .nm{font-size:15px;font-weight:700;margin-top:3px}
+  .continue .meta{font-size:11px;color:var(--faint);margin-top:4px;font-family:var(--mono)}
+  .modebadge{display:flex;align-items:center;gap:8px;justify-content:center;margin-top:8px;font-size:11px;color:var(--dim)}
+  .foot{margin-top:auto;padding:16px;text-align:center;font-size:10px;color:var(--faint);border-top:1px solid var(--border-soft)}
+
+  /* ===== MODES ===== */
+  .mode-card{border:1px solid var(--border-soft);border-radius:var(--r);padding:16px;margin-bottom:13px;
+    background:var(--surface);position:relative;overflow:hidden;cursor:pointer;transition:.18s}
+  .mode-card:hover{border-color:rgba(39,224,198,.4)}
+  .mode-card.rec{border-color:rgba(39,224,198,.45);background:linear-gradient(135deg,rgba(39,224,198,.08),var(--surface))}
+  .mode-card.locked{opacity:.62}
+  .mode-card .top{display:flex;align-items:center;gap:10px}
+  .mode-card .ic{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+    background:#0f1825;border:1px solid var(--border)}
+  .mode-card h3{font-size:16px;font-weight:700}
+  .mode-card .en{font-family:var(--mono);font-size:10px;color:var(--faint);letter-spacing:1px}
+  .mode-card p{font-size:12px;color:var(--dim);margin-top:10px;line-height:1.6}
+  .lev{margin-top:12px;display:flex;flex-direction:column;gap:7px}
+  .lev .li{display:flex;align-items:center;gap:9px;font-size:11px;color:var(--faint)}
+  .lev .li b{width:62px;color:var(--dim);font-weight:500}
+  .lev .bar{flex:1;height:5px;background:#0e1521;border-radius:3px;overflow:hidden}
+  .lev .bar i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),var(--accent-2))}
+  .lockmark{position:absolute;top:14px;right:14px;font-size:10px;color:var(--warn)}
+
+  /* ===== LOBBY ===== */
+  .filters{display:flex;gap:8px;padding:14px 16px 4px;flex-wrap:wrap}
+  .filter{font-size:11.5px;padding:6px 12px;border-radius:20px;border:1px solid var(--border);
+    color:var(--dim);background:transparent;cursor:pointer}
+  .filter.on{background:rgba(39,224,198,.12);color:var(--accent);border-color:rgba(39,224,198,.4)}
+  .camp-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px 16px}
+  .camp{background:var(--surface);border:1px solid var(--border-soft);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:.18s}
+  .camp:hover{border-color:rgba(39,224,198,.4);transform:translateY(-2px)}
+  .camp.feat{grid-column:1/3;border:1px solid rgba(39,224,198,.4)}
+  .camp .map{height:96px;position:relative;background:#0c1420}
+  .camp.feat .map{height:128px}
+  .camp .info{padding:11px 12px}
+  .camp .nm{font-size:13.5px;font-weight:700}
+  .camp .pe{font-size:10.5px;color:var(--faint);margin-top:2px;font-family:var(--mono)}
+  .camp .bot{display:flex;align-items:center;justify-content:space-between;margin-top:9px}
+  .camp .price{font-size:12px;font-weight:700;color:var(--gold)}
+  .camp .own{font-size:11px;color:var(--good)}
+
+  /* ===== DETAIL ===== */
+  .detail .hero-img{height:170px;background:#0b1320;position:relative}
+  .detail .back{position:absolute;top:12px;left:12px;width:32px;height:32px;border-radius:50%;
+    background:#0009;display:flex;align-items:center;justify-content:center;cursor:pointer;border:1px solid var(--border)}
+  .detail .dl{padding:16px}
+  .detail .nm{font-size:21px;font-weight:800}
+  .scn{margin-top:16px}
+  .scn .li{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--border-soft)}
+  .scn .li .n{font-size:13px}
+  .scn .li .d{font-size:10.5px;color:var(--faint);margin-top:2px}
+  .scn .li .go{margin-left:auto;color:var(--accent)}
+  .stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:16px}
+  .stats .s{background:var(--surface);border:1px solid var(--border-soft);border-radius:var(--r-sm);padding:11px;text-align:center}
+  .stats .s .v{font-size:17px;font-weight:700;font-family:var(--mono);color:var(--accent)}
+  .stats .s .k{font-size:10px;color:var(--faint);margin-top:3px}
+
+  /* ===== BATTLE ===== */
+  .battle .mapbox{flex:1;position:relative;background:#0a121d;overflow:hidden;min-height:0}
+  .battle svg{width:100%;height:100%;display:block}
+  .hexcell{stroke:#0a1018;stroke-width:1;cursor:pointer;transition:.12s}
+  .hexcell:hover{stroke:var(--accent);stroke-width:1.6}
+  .unit-tok{cursor:pointer}
+  .unit-tok circle.u{stroke-width:2}
+  .unit-tok text{font-family:var(--mono);font-weight:700;font-size:10px;text-anchor:middle;dominant-baseline:central}
+  .supply-line{stroke:var(--gold);stroke-width:1.6;stroke-dasharray:4 3;opacity:.7;fill:none}
+  .sel-ring{fill:none;stroke:var(--accent);stroke-width:2.4;opacity:.95}
+  .map-legend{position:absolute;left:10px;bottom:10px;background:#000a;border:1px solid var(--border);
+    border-radius:9px;padding:7px 10px;font-size:9.5px;color:var(--dim);line-height:1.7}
+  .map-legend .lg{display:flex;align-items:center;gap:6px}
+  .miniunit{width:8px;height:8px;border-radius:50%}
+  .actionbar{flex:0 0 auto;display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--border);
+    background:#0b111b}
+  .actionbar .ab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;
+    border-radius:var(--r-sm);background:#152030;border:1px solid var(--border);color:var(--dim);font-size:10px;cursor:pointer}
+  .actionbar .ab.on{background:rgba(39,224,198,.14);color:var(--accent);border-color:rgba(39,224,198,.4)}
+  .actionbar .ab.end{background:linear-gradient(135deg,var(--gold),#d9952f);color:#241700;border:none;font-weight:700}
+  .actionbar .ab svg{width:18px;height:18px}
+
+  /* ===== UNIT ===== */
+  .unit .uhead{padding:16px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,rgba(61,169,252,.08),transparent)}
+  .unit .unm{font-size:19px;font-weight:800}
+  .unit .utag{margin-top:7px;display:flex;gap:7px}
+  .attrs{display:grid;grid-template-columns:1fr 1fr;gap:11px;padding:16px}
+  .attr{background:var(--surface);border:1px solid var(--border-soft);border-radius:var(--r-sm);padding:11px}
+  .attr .k{font-size:11px;color:var(--dim)}
+  .attr .v{font-size:18px;font-weight:700;font-family:var(--mono);margin-top:3px}
+  .attr .bar{height:5px;background:#0e1521;border-radius:3px;margin-top:7px;overflow:hidden}
+  .attr .bar i{display:block;height:100%;border-radius:3px}
+  .cf{margin:0 16px;padding:16px;border-radius:var(--r);background:linear-gradient(135deg,rgba(39,224,198,.1),rgba(61,169,252,.05));border:1px solid rgba(39,224,198,.3)}
+  .cf .lab{font-size:11px;color:var(--accent);letter-spacing:1px}
+  .cf .big{font-size:34px;font-weight:800;font-family:var(--mono);margin-top:2px}
+  .cf .formula{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+  .cf .f{font-size:10px;font-family:var(--mono);padding:3px 7px;border-radius:6px;background:#0c1420;border:1px solid var(--border-soft);color:var(--dim)}
+  .cf .f b{color:var(--text)}
+  .supply-note{margin:14px 16px;padding:12px;border-radius:var(--r-sm);background:#161d2b;border:1px solid var(--border-soft);font-size:11.5px;color:var(--dim);line-height:1.7}
+  .supply-note b{color:var(--gold)}
+
+  /* ===== LOGISTICS ===== */
+  .logi .lp{padding:16px}
+  .src{display:flex;align-items:center;gap:10px;padding:11px;background:var(--surface);border:1px solid var(--border-soft);
+    border-radius:var(--r-sm);margin-bottom:10px}
+  .src .ic{width:34px;height:34px;border-radius:9px;background:#0f1825;border:1px solid var(--border);display:flex;align-items:center;justify-content:center}
+  .resbars{margin-top:8px;display:flex;flex-direction:column;gap:11px}
+  .resbar .top{display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:5px}
+  .resbar .top b{font-family:var(--mono)}
+  .resbar .track{height:9px;background:#0e1521;border-radius:5px;overflow:hidden;display:flex;gap:2px}
+  .resbar .track i{display:block;height:100%}
+  .callout{margin:14px 16px;padding:12px;border-radius:var(--r-sm);border:1px dashed rgba(245,181,69,.4);
+    background:rgba(245,181,69,.05);font-size:11.5px;color:var(--gold);line-height:1.7}
+
+  /* ===== COMMANDER ===== */
+  .cmd .chead{padding:18px;display:flex;gap:14px;align-items:center;border-bottom:1px solid var(--border);
+    background:linear-gradient(135deg,rgba(61,169,252,.1),transparent)}
+  .cmd .avatar{width:62px;height:62px;border-radius:14px;background:#0f1825;border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center}
+  .cmd .cname{font-size:18px;font-weight:800}
+  .cmd .crank{font-size:11px;color:var(--gold);margin-top:3px;font-family:var(--mono)}
+  .skills{padding:16px;display:flex;flex-direction:column;gap:13px}
+  .skill .top{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:5px}
+  .skill .top .lv{color:var(--accent);font-family:var(--mono)}
+  .skill .bar{height:7px;background:#0e1521;border-radius:4px;overflow:hidden}
+  .skill .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent-2),var(--accent))}
+  .assigned{padding:0 16px 16px}
+  .assigned .li{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid var(--border-soft);font-size:12.5px}
+  .assigned .li .mini{width:26px;height:26px;border-radius:7px;background:#0f1825;border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;color:var(--accent)}
+
+  /* ===== REPORT ===== */
+  .report{background:radial-gradient(600px 300px at 50% 0%,rgba(56,211,159,.1),transparent 55%),var(--bg-2)}
+  .report .banner{padding:46px 24px 30px;text-align:center}
+  .report .res-big{font-size:30px;font-weight:800;color:var(--good);letter-spacing:3px}
+  .report .res-sub{font-size:12px;color:var(--dim);margin-top:8px}
+  .report .metrics{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:6px 18px 18px}
+  .report .m{background:var(--surface);border:1px solid var(--border-soft);border-radius:var(--r);padding:14px;text-align:center}
+  .report .m .v{font-size:24px;font-weight:800;font-family:var(--mono)}
+  .report .m .k{font-size:11px;color:var(--faint);margin-top:4px}
+  .report .timeline{padding:0 18px 18px}
+  .report .tl{position:relative;padding-left:18px;border-left:2px solid var(--border)}
+  .report .tl .ev{position:relative;padding:9px 0;font-size:12px;color:var(--dim)}
+  .report .tl .ev::before{content:"";position:absolute;left:-23px;top:13px;width:9px;height:9px;border-radius:50%;background:var(--accent)}
+
+  /* ===== SPEC (wide) ===== */
+  .wide-stack{flex:1;overflow:auto;padding:40px 56px;max-width:1080px;margin:0 auto;width:100%}
+  .wide-stack .screen{display:none}
+  .wide-stack .screen.active{display:block}
+  .spec h1{font-size:26px;font-weight:800}
+  .spec .lead{color:var(--dim);margin-top:10px;line-height:1.8;max-width:760px}
+  .spec .sec{margin-top:34px}
+  .spec .sec h2{font-size:16px;font-weight:700;color:var(--accent);letter-spacing:1px;margin-bottom:14px;
+    display:flex;align-items:center;gap:9px}
+  .spec .sec h2::before{content:"";width:4px;height:16px;background:var(--accent);border-radius:2px}
+  .spec .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .spec .box{background:var(--surface);border:1px solid var(--border-soft);border-radius:var(--r);padding:16px}
+  .spec .box h3{font-size:14px;margin-bottom:9px}
+  .spec .box p{font-size:12.5px;color:var(--dim);line-height:1.7}
+  .swatches{display:flex;gap:12px;flex-wrap:wrap}
+  .sw{display:flex;flex-direction:column;gap:6px;align-items:center}
+  .sw .c{width:54px;height:54px;border-radius:12px;border:1px solid var(--border)}
+  .sw .n{font-size:10px;color:var(--faint);font-family:var(--mono)}
+  .trace{width:100%;border-collapse:collapse;font-size:12.5px}
+  .trace th,.trace td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--border-soft)}
+  .trace th{color:var(--faint);font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:1px}
+  .trace td b{color:var(--text)}
+  .trace td .c{color:var(--accent);font-family:var(--mono);font-size:11px}
+
+  /* ===== added screens (store/guild/rank/settings) ===== */
+  .tabhost{display:block}
+  .tabs{display:flex;gap:8px;padding:14px 16px 4px}
+  .tab{flex:1;text-align:center;padding:9px;font-size:13px;border-radius:var(--r-sm);background:#152030;border:1px solid var(--border);color:var(--dim);cursor:pointer;transition:.15s}
+  .tab.on{background:rgba(39,224,198,.12);color:var(--accent);border-color:rgba(39,224,198,.4)}
+  .tab-pane{display:none}
+  .tab-pane.on{display:block}
+  .shop-item{display:flex;align-items:center;gap:12px;padding:12px;background:var(--surface);border:1px solid var(--border-soft);border-radius:var(--r);margin-bottom:10px}
+  .shop-item .ic{width:42px;height:42px;border-radius:10px;background:#0f1825;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex:0 0 42px}
+  .shop-item .nm{font-size:13.5px;font-weight:600}
+  .shop-item .ds{font-size:10.5px;color:var(--faint);margin-top:2px}
+  .fair{margin:14px 16px;padding:11px 13px;border-radius:var(--r-sm);background:rgba(56,211,159,.06);border:1px solid rgba(56,211,159,.3);font-size:11.5px;color:var(--good);line-height:1.7}
+  .list-row{display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid var(--border-soft)}
+  .list-row:last-child{border-bottom:none}
+  .ava{width:40px;height:40px;border-radius:11px;background:#0f1825;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--mono);color:var(--accent);flex:0 0 40px;font-size:13px}
+  .toggle{width:42px;height:24px;border-radius:14px;background:#22304a;position:relative;flex:0 0 42px;cursor:pointer;transition:.18s}
+  .toggle i{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#7a8aa0;transition:.18s}
+  .toggle.on{background:rgba(39,224,198,.35)}
+  .toggle.on i{left:21px;background:var(--accent)}
+  .guild-head{padding:18px 16px;background:linear-gradient(135deg,rgba(245,181,69,.12),transparent);border-bottom:1px solid var(--border)}
+  .guild-head .gn{font-size:19px;font-weight:800}
+  .guild-head .gm{font-size:11px;color:var(--dim);margin-top:5px;font-family:var(--mono)}
+  .podium{display:flex;align-items:flex-end;justify-content:center;gap:12px;padding:20px 16px 8px}
+  .pod{display:flex;flex-direction:column;align-items:center;gap:5px}
+  .pod .circle{width:46px;height:46px;border-radius:50%;background:#0f1825;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-weight:700;font-family:var(--mono)}
+  .pod .nm{font-size:11px}
+  .pod .sc{font-size:11px;font-family:var(--mono);color:var(--accent)}
+  .pod .pl{font-size:10px;color:var(--faint)}
+  .pod.first .circle{border-color:var(--gold);color:var(--gold);width:56px;height:56px;font-size:18px}
+  .rank-row{display:flex;align-items:center;gap:12px;padding:11px 12px;background:var(--surface);border:1px solid var(--border-soft);border-radius:var(--r-sm);margin-bottom:8px}
+  .rank-row.me{border-color:rgba(39,224,198,.4);background:linear-gradient(135deg,rgba(39,224,198,.08),var(--surface))}
+  .rank-row .rk{width:26px;text-align:center;font-family:var(--mono);font-weight:700;color:var(--dim)}
+  .rank-row .rk.top{color:var(--gold)}
+  .quick{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;padding:14px 18px}
+  .quick .q{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 4px;background:var(--surface);border:1px solid var(--border-soft);border-radius:var(--r-sm);cursor:pointer;transition:.15s}
+  .quick .q:hover{border-color:rgba(39,224,198,.4)}
+  .quick .q svg{width:22px;height:22px}
+  .quick .q span{font-size:10.5px;color:var(--dim)}
+
+  /* ===== TUTORIAL (新手引导) ===== */
+  .tut{background:radial-gradient(700px 380px at 50% 0%,rgba(39,224,198,.1),transparent 55%),linear-gradient(180deg,#0a121d,#070b12)}
+  .tut .sbar{display:flex;align-items:center;justify-content:space-between;padding:10px 18px}
+  .tut .sbar .x{font-size:13px;color:var(--dim);cursor:pointer}
+  .tut .sbar .tt{font-size:12px;color:var(--faint);font-family:var(--mono)}
+  .tut-stage{flex:1;overflow:hidden;position:relative}
+  .tut-track{display:flex;height:100%;width:600%;transition:transform .36s cubic-bezier(.4,0,.2,1)}
+  .tut-slide{flex:0 0 16.6667%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 34px;text-align:center}
+  .tut .ill{width:148px;height:148px;margin-bottom:24px;border-radius:32px;background:linear-gradient(135deg,#0f1a28,#0b1320);
+    border:1px solid var(--border);display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 34px rgba(39,224,198,.1),0 14px 30px rgba(0,0,0,.4)}
+  .tut .ill svg{width:80px;height:80px}
+  .tut .num{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:3px;margin-bottom:12px}
+  .tut h2{font-size:21px;font-weight:800;margin-bottom:12px}
+  .tut .st{font-size:12.5px;color:var(--dim);line-height:1.85;max-width:288px}
+  .tut .st b{color:var(--text)}
+  .tut .st .hi{color:var(--accent)}
+  .tut-dots{display:flex;gap:7px;justify-content:center;padding:4px 0}
+  .tut-dot{width:7px;height:7px;border-radius:50%;background:#26344a;transition:.25s;cursor:pointer}
+  .tut-dot.on{background:var(--accent);width:22px;border-radius:4px}
+  .tut-foot{display:flex;gap:10px;padding:12px 18px 24px}
+  .tut-foot .btn{padding:11px;font-size:13px}
+  .tut-foot .skip{background:transparent;border:1px solid var(--border);color:var(--dim);flex:0 0 78px}
+
+  /* ===== ANALYSIS (战报分析卡片) ===== */
+  .analysis{background:radial-gradient(600px 300px at 50% 0%,rgba(56,211,159,.08),transparent 55%),var(--bg-2)}
+  .acard{margin:14px 16px;background:var(--surface);border:1px solid var(--border-soft);border-radius:var(--r);overflow:hidden;
+    box-shadow:0 18px 40px rgba(0,0,0,.4)}
+  .acard .ahead{display:flex;align-items:center;gap:11px;padding:15px 16px;border-bottom:1px solid var(--border-soft);
+    background:linear-gradient(135deg,rgba(39,224,198,.1),transparent)}
+  .acard .ahead .res{font-size:16px;font-weight:800;color:var(--good);letter-spacing:1px}
+  .acard .ahead .sub{font-size:10.5px;color:var(--faint);font-family:var(--mono);margin-top:3px}
+  .acard .ahead .qr{margin-left:auto;width:42px;height:42px;border-radius:9px;background:#0b1320;border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;flex:0 0 42px}
+  .abody{padding:14px 16px}
+  .ametrics{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-bottom:16px}
+  .ametrics .m{background:var(--bg-2);border:1px solid var(--border-soft);border-radius:var(--r-sm);padding:11px 6px;text-align:center}
+  .ametrics .m .v{font-size:18px;font-weight:800;font-family:var(--mono)}
+  .ametrics .m .k{font-size:9.5px;color:var(--faint);margin-top:4px}
+  .achart .ct{font-size:11px;color:var(--dim);letter-spacing:1px;margin-bottom:10px;display:flex;align-items:center;gap:7px}
+  .achart .ct::before{content:"";width:3px;height:12px;background:var(--accent);border-radius:2px}
+  .bars{display:flex;align-items:flex-end;justify-content:space-around;height:128px;padding:0 4px}
+  .bars .col{display:flex;flex-direction:column;align-items:center;gap:6px;height:100%}
+  .bars .pair{display:flex;align-items:flex-end;gap:5px;height:100%}
+  .bars .bar{width:15px;border-radius:4px 4px 0 0;position:relative}
+  .bars .bar.f{background:linear-gradient(180deg,var(--accent),#198a7a)}
+  .bars .bar.e{background:linear-gradient(180deg,var(--danger),#b53a44)}
+  .bars .bar .vl{position:absolute;top:-15px;left:50%;transform:translateX(-50%);font-size:9px;font-family:var(--mono);color:var(--dim)}
+  .bars .lab{font-size:10.5px;color:var(--dim)}
+  .aleg{display:flex;gap:18px;justify-content:center;margin-top:11px;font-size:10.5px;color:var(--dim)}
+  .aleg .lg{display:flex;align-items:center;gap:5px}
+  .aleg .sw{width:10px;height:10px;border-radius:3px}
+  .astat{display:flex;align-items:center;gap:10px;padding:10px 2px;border-bottom:1px solid var(--border-soft);font-size:12px}
+  .astat:last-child{border-bottom:none}
+  .astat .k{flex:1;color:var(--dim)}
+  .astat .v{font-family:var(--mono);font-weight:700;color:var(--text)}
+  .astat .v.g{color:var(--good)}.astat .v.a{color:var(--accent)}
+  .ashare{display:flex;gap:10px;padding:0 16px 18px}
+  .ashare .btn{padding:11px;font-size:13px}
+
+  /* ===== EDITOR (剧本编辑器 UGC) ===== */
+  .editor{background:var(--bg-2)}
+  .ed-top{padding:14px 16px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#0e1622,#0b111b)}
+  .ed-top .nm{font-size:16px;font-weight:800;display:flex;align-items:center;gap:8px}
+  .ed-top .nm .pen{font-size:10.5px;color:var(--accent);border:1px solid rgba(39,224,198,.4);border-radius:20px;padding:2px 8px;font-family:var(--mono)}
+  .ed-top .meta{display:flex;gap:7px;margin-top:11px;flex-wrap:wrap}
+  .ed-tools{display:flex;gap:7px;padding:11px 14px;overflow-x:auto;border-bottom:1px solid var(--border-soft);background:#0b111b}
+  .ed-tools::-webkit-scrollbar{height:0}
+  .ed-tool{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:5px;padding:8px 9px;border-radius:var(--r-sm);
+    background:#152030;border:1px solid var(--border);font-size:10px;color:var(--dim);cursor:pointer;min-width:50px;transition:.14s}
+  .ed-tool.on{background:rgba(39,224,198,.14);color:var(--accent);border-color:rgba(39,224,198,.4)}
+  .ed-tool .sw{width:16px;height:16px;border-radius:4px}
+  .ed-grid{flex:1;display:flex;align-items:center;justify-content:center;padding:14px;background:#0a121d;overflow:hidden}
+  .ed-grid svg{width:100%;height:auto;max-height:100%;display:block}
+  .ed-hex{cursor:pointer;transition:.08s}
+  .ed-hex:hover{stroke:var(--accent);stroke-width:1.5}
+  .ed-foot{display:flex;gap:10px;padding:12px 14px;border-top:1px solid var(--border);background:#0b111b}
+  .ed-foot .btn{padding:11px;font-size:13px}
+  .ed-compliance{padding:0 14px 14px;display:none}
+  .ed-compliance.on{display:block}
+  .ed-compliance .box{margin-top:6px;padding:11px 13px;border-radius:var(--r-sm);border:1px dashed rgba(245,181,69,.4);
+    background:rgba(245,181,69,.05);font-size:11.5px;color:var(--gold);line-height:1.7}
+
+  @media (max-width:900px){.sidebar{display:none}}
+</style>
+</head>
+<body data-page-node-id="zAoFtBigqVS0bXMawTIJNq">
+<div data-page-node-id="lbjESV5pKTI9E6sZzf0zZf" class="app">
+  <!--pnid:bkzTrayEYmhtr4WtfUpAmq--><!-- ============ SIDEBAR ============ -->
+  <aside data-page-node-id="ERa1oqdeu41rgofmeu2dh4" class="sidebar">
+    <div data-page-node-id="Wf5L8xiltsx6WKMzoVbLCO" class="brand">
+      <div data-page-node-id="gG9IAEX7qocESycTgtyVGw" class="logo">
+        <svg data-page-node-id="ZJCVq2FrNcpKPhpv9Gde94" class="hex" viewBox="0 0 34 38"><polygon data-page-node-id="4mhDQUS4kpomEwMrfAhX13" fill="none" points="17,1 32,9.5 32,28.5 17,37 2,28.5 2,9.5" stroke="#27E0C6" stroke-width="2"/><polygon data-page-node-id="afnRrYuv7dtE0LhtQTPkvW" fill="rgba(39,224,198,.18)" points="17,9 26,14 26,24 17,29 8,24 8,14" stroke="#27E0C6" stroke-width="1.4"/><circle data-page-node-id="43Yo2wMk6mqeAwkYoXLHX7" cx="17" cy="19" fill="#27E0C6" r="3"/></svg>
+        <div data-page-node-id="AKG8ZSsdllfEnYWBhATySk"><h1 data-page-node-id="Ap2wuYpTPCIC2qYNp6Tssc"><!--pnid:KbCSsynwFq4EtMTbdQzs2H-->铁幕兵棋 <span data-page-node-id="Gb5e3yCcphA4ec2rsSPCTx"><!--pnid:p86LLG9svMtRu1bQ50p20B-->HEXFRONT</span></h1><div data-page-node-id="YWeb0FkS8ZGmo6qDkxAfye" class="sub"><!--pnid:k0YZzreY0a4nJNKTewCJIm-->PROTOTYPE · v1.0</div></div>
+      </div>
+    </div>
+    <nav data-page-node-id="HMw7mKiOe8mnXKFFqeDKpP" class="nav" id="nav">
+      <div data-page-node-id="0jCEKhYeuRybgsOkgbvUIv" class="grp"><!--pnid:2Cb6wPSYGvSAcQM2MrZeY7-->启动流程</div>
+      <button data-page-node-id="LaLvciD64aUXerRnn8GJuK" class="navbtn active" data-kind="device" data-screen="home"><svg data-page-node-id="iJQFBRUlovoCydnSg5sfI1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path data-page-node-id="yHSdhhsLePISYHmb0dhidf" d="M3 11l9-8 9 8M5 10v10h14V10"/></svg><!--pnid:9HTajsOxi5zkfmXtdivu9T-->主菜单<span data-page-node-id="h4nvYWGHLnGwvC89Xrvg1K" class="tag hot"><!--pnid:F6k5w4Kd7hv67Th6DRYHKx-->入口</span></button>
+      <button data-page-node-id="XK6WUDXv7kAPKnHJoIYm2D" class="navbtn" data-kind="device" data-screen="tutorial"><svg data-page-node-id="h13tcr4RWNsjOVdmEy4Bfe" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path data-page-node-id="341AvB14tT20gQntHSgXMd" d="M2 9l10-5 10 5-10 5z"/><path data-page-node-id="hs3v2raPO6YGRPPTTmgYe3" d="M6 12v5c0 1 3 2 6 2s6-1 6-2v-5"/><path data-page-node-id="CixbKpeWXj2HaRGenjwz2d" d="M22 9v6"/></svg><!--pnid:356eWL4JncMvrFZIFNS0PL-->新手引导</button>
+      <button data-page-node-id="CFov25RU8m9TbsuH39ebHL" class="navbtn" data-kind="device" data-screen="modes"><svg data-page-node-id="iuj2qS3pr4uMyFP63nwLBa" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path data-page-node-id="6TnXSjSsU7UcjJg3XhULvS" d="M4 6h16M4 12h16M4 18h16"/></svg><!--pnid:a9WT1ZhHcuDBZx3mICytuB-->模式选择</button>
+      <div data-page-node-id="MnfE24obLWFt2WCo1JRwLa" class="grp"><!--pnid:VSVcj8j5pGYM95QW1UuZ1o-->内容副本</div>
+      <button data-page-node-id="bgkkbVzYz7ZpGhE2L5qF1o" class="navbtn" data-kind="device" data-screen="lobby"><svg data-page-node-id="Ilv38vbO7pWua8GSqq3Zrj" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect data-page-node-id="gpKrAzpNzvrY6XxyUjxMi7" height="7" rx="1" width="7" x="3" y="4"/><rect data-page-node-id="sdRZ6qTigw94UcKz3hkZfm" height="7" rx="1" width="7" x="14" y="4"/><rect data-page-node-id="8Yzm4mGHd9Igo7a0nrcyH0" height="7" rx="1" width="7" x="3" y="14"/><rect data-page-node-id="FoZiIOTZNbhtjy4B0OFu2U" height="7" rx="1" width="7" x="14" y="14"/></svg><!--pnid:PtREwQWlemoptzvfCfQ0Hd-->副本大厅</button>
+      <button data-page-node-id="BlYi2u3TJUvsUUICiJgk5z" class="navbtn" data-kind="device" data-screen="detail"><svg data-page-node-id="G3zZtpdMffLls2o4UUFR8w" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path data-page-node-id="f1SQMY1n25TTnD1aSq3cSN" d="M4 4h16v16H4z"/><path data-page-node-id="OIB0M7B7QGiveq8hd1gWT0" d="M4 9h16M9 4v16"/></svg><!--pnid:Ot2182xQpoaYIhS56ETflR-->副本详情</button>
+      <div data-page-node-id="a5nDds2BhXx3DrIs3A91NT" class="grp"><!--pnid:3205FZftnnwBabBTqJISZA-->战斗核心</div>
+      <button data-page-node-id="J01n0jGxoqtgJshc4bv9HZ" class="navbtn" data-kind="device" data-screen="battle"><svg data-page-node-id="bSkkLChTGptazevvo0gJcC" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon data-page-node-id="ZmgBmSUK7DECvA4m8u6W84" points="12,3 20,7.5 20,16.5 12,21 4,16.5 4,7.5"/><circle data-page-node-id="Tebb2rRmBY6bdOQBFS0RVE" cx="12" cy="12" r="3"/></svg><!--pnid:eNpXHMNSBgSCiSLsnOmTf8-->战斗主界面<span data-page-node-id="d0qXKFDeUTJHGtJEp8Awf9" class="tag hot"><!--pnid:2XJPnJUFsdBUmRtElceAyw-->核心</span></button>
+      <button data-page-node-id="T3gI1Y2By0dKERxHvcmnYo" class="navbtn" data-kind="device" data-screen="unit"><svg data-page-node-id="SgR6ImpQ1qXqJi3LgKuCiq" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle data-page-node-id="SEQI8myUy7YnGIMsRMKD8d" cx="12" cy="8" r="4"/><path data-page-node-id="mn50xoB0HGxLTXGWJ0Yfn1" d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg><!--pnid:gxiRZHXTvpgpNRU3YHZArv-->单位面板</button>
+      <div data-page-node-id="M2lYWRwvHhs27gCilZp2Gn" class="grp"><!--pnid:HJFbfrjKIJCTARh0vEIuoI-->系统面板</div>
+      <button data-page-node-id="W2erVFz2OydCBVglxLBjRN" class="navbtn" data-kind="device" data-screen="logistics"><svg data-page-node-id="wcHfrMFeng2FhbxM8gN4xz" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path data-page-node-id="pG41lx0olabdjW5CYPWNyK" d="M3 7l9-4 9 4-9 4-9-4z"/><path data-page-node-id="o1L5t4umaz0563morObkle" d="M3 7v10l9 4 9-4V7"/></svg><!--pnid:dNSaM0sm2vZBuj9gxjl3b6-->后勤补给</button>
+      <button data-page-node-id="hICYNhkHATj3kjjDAcWOoN" class="navbtn" data-kind="device" data-screen="commander"><svg data-page-node-id="qcu79lEgjD3AfcSlS6V7Ov" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path data-page-node-id="7lQNAPvQZPA2TyYtvDrPq3" d="M12 2l3 7 7 .5-5.5 4.5 2 7L12 17l-6.5 4 2-7L2 9.5 9 9z"/></svg><!--pnid:VRbmDD1QqwRsx1AHzmyga3-->指挥官</button>
+      <div data-page-node-id="SRgeJB2Uph89e23DxwDzH2" class="grp"><!--pnid:Id28ySKsMQU3gOPkJLjkbD-->结算归档</div>
+      <button data-page-node-id="i8jEQ7gjgZH4lrELGG6pyQ" class="navbtn" data-kind="device" data-screen="report"><svg data-page-node-id="bB0pSGvS9rnGOKKopF8vXq" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path data-page-node-id="tkRFVlGBSOtz4UYkIkgglk" d="M4 4h16v16H4z"/><path data-page-node-id="QXadEc7vfqSiwbi4tJM16S" d="M8 12l3 3 5-6"/></svg><!--pnid:Qe9oVfCCwBmlGUGfBoROQG-->战报结算</button>
+      <button data-page-node-id="4ghnH72CRyfYfKH5LYnyAO" class="navbtn" data-kind="device" data-screen="analysis"><svg data-page-node-id="4iLrXDieb0b4Wv64rOGP1p" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path data-page-node-id="EXzKZsNCA7TXrK3l4Y6xvD" d="M4 20V10M9 20V4M14 20v-7M19 20v-12"/></svg><!--pnid:UQUDMeEkRDJh4jPiiKkEad-->战报分析</button>
+      <div data-page-node-id="jevmhiGEoYsBsV0fWUrhz8" class="grp"><!--pnid:Jg9M47Y9IsdDakaPXTpDFA-->商业 · 社交</div>
+      <button data-page-node-id="dZxE4UYCtWMynnAUMdlJ8H" class="navbtn" data-kind="device" data-screen="store"><svg data-page-node-id="ZzHSnwZhWJVmH3CSK8mhJf" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path data-page-node-id="AbmoNZDqyXLJQ4fzJy3DYe" d="M4 4h16v16H4z"/><path data-page-node-id="euGIR3EhM9ptGYE4KQOz2U" d="M4 9h16M9 4v16"/></svg><!--pnid:d74JG3rzVogiBiMpWJ5wwk-->军需商店</button>
+      <button data-page-node-id="3xHpXXSl0TKKHNXCer2gKj" class="navbtn" data-kind="device" data-screen="guild"><svg data-page-node-id="Q9W0vr0lCcxlvbXL9TQA9W" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path data-page-node-id="qHBAr0wVnutBG9M4ryK2k1" d="M12 2l3 7 7 .5-5.5 4.5 2 7L12 17l-6.5 4 2-7L2 9.5 9 9z"/></svg><!--pnid:4Rm4jgz2uILcQ85bhzVXxh-->社交军团</button>
+      <button data-page-node-id="8gjETz9Ixr8fXMFl07sQxh" class="navbtn" data-kind="device" data-screen="rank"><svg data-page-node-id="l28fksDzUU4Q6lydBElg22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path data-page-node-id="HTlAaK2khbhcjIvXKXvLbL" d="M4 20V8M12 20V4M20 20v-6"/></svg><!--pnid:vdJoMScBmhhJtfibuvwSo3-->战力排行</button>
+      <button data-page-node-id="lyPwH8xlZusaymdpvEufLj" class="navbtn" data-kind="device" data-screen="editor"><svg data-page-node-id="HP7YAQsUSyXlgSZfpeBnOs" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path data-page-node-id="u7Hrd6YBjmGanLJEzK4klH" d="M4 20h4l11-11-4-4L4 16v4z"/><path data-page-node-id="o7Gh3gcJ41p7aeuG5DaPTf" d="M13 7l4 4"/></svg><!--pnid:Nuuv8XJCQzsYY3QwPOaybJ-->剧本编辑器</button>
+      <button data-page-node-id="2HZHKJSmsPzBTmtk1EN3ep" class="navbtn" data-kind="device" data-screen="settings"><svg data-page-node-id="FHyojLZRkVFZPY1steuHSS" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle data-page-node-id="WGI9nKoBmfORNLZE4pozmJ" cx="12" cy="12" r="3"/><path data-page-node-id="CxjQVBFTOtbAcHjUIKrf0o" d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg><!--pnid:PiKnPtaZBKcnVpsO6kYISo-->设置 · 防沉迷</button>
+      <div data-page-node-id="oe6qFryaZ9fyJQc1ypms1H" class="grp"><!--pnid:8WfO6g8qDvDL6QQI75KnjG-->文档</div>
+      <button data-page-node-id="GmmC1VRsVbyEx2M33PAEWf" class="navbtn" data-kind="wide" data-screen="spec"><svg data-page-node-id="8HRj1QZQRSHeIkJY7vuak2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path data-page-node-id="IGddut7kAnZGLopSLYpwHG" d="M6 2h9l5 5v15H6z"/><path data-page-node-id="dkSF0uz3CpTiBdrgMATpFN" d="M14 2v6h6M9 13h6M9 17h6"/></svg><!--pnid:yUQ6051m44vNaNoFIBc7n0-->设计说明</button>
+    </nav>
+    <div data-page-node-id="MMC4PaSL8tzx3OH6XKv9Db" class="sidefoot"><!--pnid:h7TU4MHC16479PcYEokzoP-->基于《产品设计文档 v1.0》<br data-page-node-id="q51rOhQTOPyWZD2q8yr3VE"><!--pnid:gixo6WGH50mqZ2wcgFeWLd-->原创设计 · 深色科技风</div>
+  </aside>
+
+  <!--pnid:zT5VRR5tjPeaP1ZjUVsstf--><!-- ============ STAGE ============ -->
+  <div data-page-node-id="pB8gb7dhcapEGypxV7PpRl" class="stage">
+    <div data-page-node-id="CseluGqkaNF9cZRE4x87T8" class="topbar">
+      <div data-page-node-id="3M7P16cjtOkVZcGbHjKiUv" class="crumb"><!--pnid:7Cwt9IPvjEXnw6Bv0j1weh-->铁幕兵棋 HEXFRONT / <b data-page-node-id="JSOagBw7Z37jq4upaXPKn5" id="crumb"><!--pnid:QunOj1XOFXhIfvHV7nu7ye-->主菜单</b></div>
+      <span data-page-node-id="QHiIVUPYLqEemecgNcIGfl" class="dev"><!--pnid:rLzXaIbE3nmMw8Bd20n1l7-->移动端 · 390×844</span>
+      <span data-page-node-id="Wdc7TZQQu7XnvP1J8yl6c6" class="pill"><!--pnid:8t8ZAjEdQ1IAWFe3OV6GRT-->可交互原型</span>
+    </div>
+    <div data-page-node-id="XcAxfX080Y6KwrSZyVQYgY" class="canvas" id="canvas">
+      <!--pnid:Tbq7Hu6Wbp7QIB9uBbbk3F--><!-- device stack -->
+      <div data-page-node-id="tdTwgQBxlcKReHwJQYw8gZ" class="device-wrap" id="deviceWrap">
+        <div data-page-node-id="48KjTMeeTpA3uPTP8bBoK1" class="device">
+          <div data-page-node-id="wePQsH7xXqtirGpQF0C2Qb" class="notch"></div>
+
+          <!--pnid:sKVVBPuJFo0rW4xauyWVOi--><!-- ===== HOME ===== -->
+          <section data-page-node-id="UQqNkdcTFNItdkEdsHDFu0" class="screen home active" data-screen="home">
+            <div data-page-node-id="U8JRjV3HJyvWzRHoDOu5xJ" class="statusbar"><span data-page-node-id="zRJZe7EFHVrBZZCITHm3ee"><!--pnid:srR4SoIf9Sx2pVcb9zh0Jd-->19:24</span><span data-page-node-id="zOIl78XwustQP6N1F6bVL5" class="right"><span data-page-node-id="LG66kiC54Li7zlniQofQiO"><!--pnid:nA1JYDlBQ7de2lpCKuEkk0-->5G</span><span data-page-node-id="NnDZG1SoTi879Mw3zsiS0S"><!--pnid:Y6m9r6EVlZEUiGlWEhTBRv-->▮▮▮ 82%</span></span></div>
+            <div data-page-node-id="4Ds9dZ4Mp3pDKXCmdWjnqR" class="hero">
+              <svg data-page-node-id="u1lZghSRjpTkf9tZEPfKw6" class="emblem" viewBox="0 0 96 104"><polygon data-page-node-id="SI4caYg6IeLgbnHVGTYyE2" fill="rgba(39,224,198,.06)" points="48,2 90,26 90,78 48,102 6,78 6,26" stroke="#27E0C6" stroke-width="2.4"/><polygon data-page-node-id="XOshIlrofmxiOM2N8uQB3M" fill="none" points="48,18 74,32 74,72 48,86 22,72 22,32" stroke="#3DA9FC" stroke-width="1.6"/><path data-page-node-id="3kHB6ydbWb9aK1SkgbIJwR" d="M48 30 L60 56 L36 56 Z" fill="#27E0C6"/><circle data-page-node-id="oPRyPP5ajdoffxMvnie7uy" cx="48" cy="62" fill="#F5B545" r="4"/></svg>
+              <div data-page-node-id="tWVSUoRhZpVVJCDZMJpzZe" class="title"><!--pnid:rFwU2sag5EYoRZaZRL7pjw-->铁幕<span data-page-node-id="WtdqXhFpEUSlrb7EQ6mTO6"><!--pnid:gJn8ixWInNEPWY5fAVV55U-->兵棋</span></div>
+              <div data-page-node-id="KIbdhX3Gqlx1NUTFMCm6IH" class="en"><!--pnid:2lgnw1jzAzeXKoYexRwNCE-->H E X F R O N T</div>
+              <div data-page-node-id="yH4Ky4w0SKDnn500V2jJ7K" class="desc"><!--pnid:wRFQ8mpQCvW1PEWwrDixRi-->统一兵棋引擎驱动的硬核策略手游<br data-page-node-id="BzrBFUjOSNvjIzgdx2OCSZ"><!--pnid:CSIszRMNHZ0zdmgkOK7v4S-->手机上也能玩的二战级兵棋 · 免费下载 + 内购</div>
+            </div>
+            <div data-page-node-id="8rE9tneUMxyjf7DX4A3TXs" class="menu">
+              <div data-page-node-id="MShKYD3DO389iF4v7SeRRW" class="continue" data-go="battle">
+                <div data-page-node-id="qfZl4uNomoJMXnFvgbWePm" class="lab"><!--pnid:mRI0X4sjVYqjkOoP2EA9qt-->继续战役</div>
+                <div data-page-node-id="ggPKizMC7G32Prifeabypi" class="nm"><!--pnid:HoGRp1W3DmRuv9sWHKRCeY-->二战 · 东线 — 巴巴罗萨行动</div>
+                <div data-page-node-id="oStskTWEn9QPXJbGStebm0" class="meta"><!--pnid:gwbxgdSdUUJ3D6K5ECDCbg-->职业模式 · 第 12 回合 / 机动阶段</div>
+              </div>
+              <button data-page-node-id="DQTWuRlLzO0oPJ0AylES6r" class="btn btn-primary" data-go="modes"><!--pnid:KkCb8z90PJFqK28AXnVoLp-->新游戏 · 选择模式</button>
+              <button data-page-node-id="mGh5usBebAROFsVLAJAhJc" class="btn btn-ghost" data-go="lobby">
+                <svg data-page-node-id="AAab6gAHF6C1p00rLZGRiA" fill="none" height="16" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="16"><path data-page-node-id="iDPHzKLvulIJJZfSnzmabQ" d="M18 10a4 4 0 0 0-7-2.6L6 11M6 14a4 4 0 0 0 7 2.6l5-3.6"/></svg><!--pnid:LRKzFX0TgOIjYKvxL1Ye9a-->
+                云存档同步 · 随时续玩
+              </button>
+              <button data-page-node-id="Mp5ZUciwP7aoRSzpMVMtF4" class="btn btn-ghost" data-go="tutorial">
+                <svg data-page-node-id="Wek8pLf00E8CfAAfV9la7i" fill="none" height="16" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="16"><path data-page-node-id="uiG7Nm8SE748Z9IRYUf4wI" d="M2 9l10-5 10 5-10 5z"/><path data-page-node-id="SdKigg9waiFnWw0dyeBCgD" d="M6 12v5c0 1 3 2 6 2s6-1 6-2v-5"/></svg><!--pnid:i3f6keXLew82XwL6tA7jzY-->
+                新兵训练营 · 开始引导
+              </button>
+              <div data-page-node-id="TZa10QH8BEcffJJ0TLmo8w" class="modebadge"><!--pnid:IzlkXXbAIwnENJuEu4OVLJ-->当前模式 <span data-page-node-id="lh8aIbO3FBqxoEPuSAeRsR" class="chip accent" style="margin-left:6px"><!--pnid:jPUDC3vAczO8nkie7W4ksd-->职业模式</span></div>
+            </div>
+            <div data-page-node-id="z8aWvlQy2lzWh44VrqvBhQ" class="quick">
+              <div data-page-node-id="BXvpWSZHS63H2FbksUt05Y" class="q" data-go="store"><svg data-page-node-id="Gz7WPKvna2oGLKa7KCdg6Q" fill="none" stroke="#27E0C6" stroke-width="2" viewBox="0 0 24 24"><path data-page-node-id="EEMSa0shdjizeOwDzFhfgS" d="M4 4h16v16H4z"/><path data-page-node-id="azoVuKvbAXy5eALKP2aE8U" d="M4 9h16M9 4v16"/></svg><span data-page-node-id="lzV6xl75UiUqiFHjBBFJr5"><!--pnid:KdcqeIkmAylMcLyMIuVTHR-->军需商店</span></div>
+              <div data-page-node-id="QXzFjudem1X1yi6knLFFGK" class="q" data-go="guild"><svg data-page-node-id="QhssEXnIXD0X3xKGzYK7vY" fill="none" stroke="#F5B545" stroke-width="2" viewBox="0 0 24 24"><path data-page-node-id="YpK4hppdOophTY5hNTmu7n" d="M12 2l3 7 7 .5-5.5 4.5 2 7L12 17l-6.5 4 2-7L2 9.5 9 9z"/></svg><span data-page-node-id="oOEHv8Om1urA5KrYtz1wFv"><!--pnid:H0uEVonYUZpMlv2s0OJLWy-->军团</span></div>
+              <div data-page-node-id="6N8PELOr4Gf9Y2F5Q4AgDm" class="q" data-go="rank"><svg data-page-node-id="eax0WpJZXX1nM66xlIlcbM" fill="none" stroke="#3DA9FC" stroke-width="2" viewBox="0 0 24 24"><path data-page-node-id="tlHpwLLOEkA7D1QM72PuWN" d="M4 20V8M12 20V4M20 20v-6"/></svg><span data-page-node-id="8QfxrzV7QrrE58XF6g3GQv"><!--pnid:6KYVGei4nVxzCi6xbeVTB9-->排行</span></div>
+              <div data-page-node-id="9gAwytIfLsVbYcOljivh77" class="q" data-go="settings"><svg data-page-node-id="LetmEVf814bCmv6oYWl8aR" fill="none" stroke="#93A1B8" stroke-width="2" viewBox="0 0 24 24"><circle data-page-node-id="XuYMpXzae9bFjhiMnFBOYf" cx="12" cy="12" r="3"/><path data-page-node-id="vJoLJonOXLAlIBsRV2Ajry" d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg><span data-page-node-id="kSlv29EKfTVPaz8bXIh5cN"><!--pnid:WGXf9craeE3paBX9pR3yrL-->设置</span></div>
+            </div>
+            <div data-page-node-id="lxTD9Mj1HyGZFdCeWjEOb9" class="foot"><!--pnid:iGDaRCsVZKZR97vNVa3Oxz-->版本 v1.0 (MVP) · 免费 + 内购 · © 原创设计</div>
+          </section>
+
+          <!--pnid:4qz5EyTTIAj1nS4w0AaMRC--><!-- ===== TUTORIAL ===== -->
+          <section data-page-node-id="2hL11ZozvdWc8V5dH15aqD" class="screen tut" data-screen="tutorial">
+            <div data-page-node-id="hWGcARAaFMRDsFMV9cX9d4" class="statusbar"><span data-page-node-id="v62PIYVU3yxOgGSFOgdK6g"><!--pnid:mcPGf966ZRmhKqCIChz3cg-->19:24</span><span data-page-node-id="D4S6isqlPkeDuqI9ERbFz4" class="right"><span data-page-node-id="aElXx97p1quZuLyr56epWN"><!--pnid:usSH3FzxOGojdzx87PYHtQ-->新兵训练营</span></span></div>
+            <div data-page-node-id="p1S7ZeuPDFkARk706FNBC8" class="sbar"><div data-page-node-id="lgKiTzxl2bivOurMuwTmHz" class="x" data-go="home"><!--pnid:1D5Ar0Ah1I3nelzZhHeviY-->✕ 跳过</div><div data-page-node-id="KQDYG7FbHDWwOzHp3fHoFa" class="tt"><!--pnid:T6O6GK6eaEDXzIjGg5Loy5-->STEP 1 / 6</div></div>
+            <div data-page-node-id="yeqJow6aC298AQ9WtmrOVQ" class="tut-stage">
+              <div data-page-node-id="WCf0fFL5wIyGe8l9kmNbAM" class="tut-track" id="tutTrack">
+                <div data-page-node-id="JIYydFd92Dmvt92dxq01o2" class="tut-slide">
+                  <div data-page-node-id="lrIYYT3VSWUrJlg2dmFyyE" class="ill"><svg data-page-node-id="A0zSnuQiVsJ9nIMBFN4yUp" viewBox="0 0 96 104"><polygon data-page-node-id="sA4jMFq3G8jt6lcTX5YarX" fill="rgba(39,224,198,.06)" points="48,2 90,26 90,78 48,102 6,78 6,26" stroke="#27E0C6" stroke-width="2.4"/><polygon data-page-node-id="4WA2FSVIcwOxOBm7zMrlIj" fill="none" points="48,18 74,32 74,72 48,86 22,72 22,32" stroke="#3DA9FC" stroke-width="1.6"/><path data-page-node-id="OfyogyOqfjUZc03Byb6F6s" d="M48 30 L60 56 L36 56 Z" fill="#27E0C6"/><circle data-page-node-id="GSRdVsvCs3gkdXWy9dwwvB" cx="48" cy="62" fill="#F5B545" r="4"/></svg></div>
+                  <div data-page-node-id="55KBFjbE09vlkTjLTSg3ek" class="num"><!--pnid:vhueyXImwL9mk3IMYtEslX-->WELCOME</div>
+                  <h2 data-page-node-id="LaGic2tdD2eGUSUWWhyl0G"><!--pnid:wwUScZLTLrK8AiEpBy3AE8-->欢迎，指挥官</h2>
+                  <div data-page-node-id="iMcvUUwyz8X4pj1HneBG5i" class="st"><!--pnid:jzgC8x7iAS6JgLeHe3CTo0-->这是 <b data-page-node-id="zCvqo1B0yhdV5t3exySOUG"><!--pnid:vK18psrK7Qy1IdAPmbsPLG-->铁幕兵棋 HEXFRONT</b><!--pnid:LobfFZiBlt0w0FDk2lEv9s--> —— 一款在<b data-page-node-id="o1Q3zmjQ15mJqz5JEIY95B"><!--pnid:ipoiUHiSBCy4nyOtXDkLRE-->手机上也能玩</b><!--pnid:T6cyNGD8xqVg5UcsRTpHAY-->的深度硬核兵棋。<br data-page-node-id="3xLjZiO7qebeaBzeIlk8YI"><!--pnid:adnVHugjB5AQcfLsje05DA-->6 步新兵训练，带你从零推演第一场战役。</div>
+                </div>
+                <div data-page-node-id="iG9bQCecjaPG6HhtxX7gkI" class="tut-slide">
+                  <div data-page-node-id="OzksK9b6nYJDJ8JJJuxjfQ" class="ill"><svg data-page-node-id="HI8w0JYy9Ugmy3C10aIJWC" viewBox="0 0 80 80"><g data-page-node-id="t70mS7xJerQJ1G7PQqtaxk" fill="none" stroke="#27E0C6" stroke-linecap="round" stroke-width="3"><path data-page-node-id="81GCmAJqdzTmwsLtL1q0Di" d="M16 64V40M40 64V22M64 64V34"/></g><g data-page-node-id="xDP8iFgxnFeXBqLwYvESSI" fill="rgba(39,224,198,.25)"><rect data-page-node-id="dQWUaLWLBCoyPUs2CjO5SO" height="24" rx="3" width="10" x="11" y="40"/><rect data-page-node-id="1y9SqL1bnNMJpapNepzUzB" fill="rgba(39,224,198,.5)" height="42" rx="3" width="10" x="35" y="22"/><rect data-page-node-id="GtMMIGrn01YvzB01FgYO6B" height="30" rx="3" width="10" x="59" y="34"/></g></svg></div>
+                  <div data-page-node-id="eem2b7Zoj3aEqHjlCrYqHt" class="num"><!--pnid:ZwvPY960cm4HYkQdcbVbBI-->MODE</div>
+                  <h2 data-page-node-id="gXPjfx00YxDGHlfu2F9LPG"><!--pnid:xJzari0YFAxvCRhMP0MMKU-->三模式 · 四杠杆</h2>
+                  <div data-page-node-id="ybTiAAXeG2O9utQkITht64" class="st"><!--pnid:hTWKuUyYtVNdnfitBZBbbs-->同一套引擎，用 <span data-page-node-id="2LN6nsgOD70V6zDM2TWQcX" class="hi"><!--pnid:p9ocxDaw2PAuih0Aw78O4K-->规则开关 · 信息密度 · AI 强度 · 单局时长</span><!--pnid:DoqUb1GuF1A2Yq5X1yYWzO--> 四个杠杆分层。<br data-page-node-id="xJLJpBSpQ3SrcqYPuwyxeG"><!--pnid:U9Dbbjt4JcrGL0nAC1EptU-->新手从<b data-page-node-id="ZRtRO0nbU9olvx0dDDkE1R"><!--pnid:aK5UvHkIPPNm6UVipIxiiO-->职业模式</b><!--pnid:m0539JRoQo4ASLfjWWuzgu-->起步，体验完整兵棋。</div>
+                </div>
+                <div data-page-node-id="EyaBHUyysh8KyuB4qtmASt" class="tut-slide">
+                  <div data-page-node-id="XFkFZQO0gabb5c04X3so5N" class="ill"><svg data-page-node-id="OvYnFMdZ9ekECn9STO6CHJ" viewBox="0 0 90 90"><polygon data-page-node-id="vWD2FWNjSB3cMCGytnRu2M" fill="#10202c" points="45,6 78,26 78,64 45,84 12,64 12,26" stroke="#27E0C6" stroke-width="2.2"/><circle data-page-node-id="gjZBgXd2poAfY4zT5LRk5e" cx="45" cy="45" fill="#0b1320" r="16" stroke="#27E0C6" stroke-width="2"/><text data-page-node-id="75Qvb3ClUE6uRSHKxcnZKz" dominant-baseline="central" fill="#27E0C6" font-family="monospace" font-size="13" text-anchor="middle" x="45" y="45"><!--pnid:cPvs9fp27jOGv0pNpzBASi-->装</text></svg></div>
+                  <div data-page-node-id="Mj0NKBlHULk0E4SYJ0QwjW" class="num"><!--pnid:ZypVloPRse4XtO8GbNUmW3-->CONTROL</div>
+                  <h2 data-page-node-id="BzOSayiyGEqdeZgutZGQ6y"><!--pnid:3Zxk2Qh4MDOEeQyNhavJTc-->选中即操作</h2>
+                  <div data-page-node-id="bLTX7CaXkrk8uDoLP3JPOf" class="st"><!--pnid:8NavhydIfkFmg20AL95W1C-->点击单位选中，底部弹出<span data-page-node-id="9D6LVmbO1wGOVlep766zGY" class="hi"><!--pnid:nvFX1vndHmW3H489vh2Ro0-->移动 / 攻击 / 补给 / 编队</span><!--pnid:ly0hIHFPQzZVYRnbJ4iNDD-->情境操作条。<br data-page-node-id="VBi48ZzgWJlwoXoaGhy4sr"><!--pnid:ahcttkoZDVmO288PH8DR8q-->拇指可达，零学习成本，告别右键菜单。</div>
+                </div>
+                <div data-page-node-id="5VA5eHlqjPD6lly6Hq4fja" class="tut-slide">
+                  <div data-page-node-id="jLbsYjtQaYxV9eBRoPbT1U" class="ill"><svg data-page-node-id="4tFOIoBHpJt5QuYGmrpiap" viewBox="0 0 90 90"><polyline data-page-node-id="Sc1mCXTwi3ZQWsyQoeiFwR" fill="none" points="14,72 30,54 46,40 70,26" stroke="#F5B545" stroke-dasharray="5 4" stroke-width="2.4"/><polygon data-page-node-id="8AmOiM0o34e5s9R8U7xdkP" fill="#27E0C6" points="14,72 22,66 6,66"/><circle data-page-node-id="jtTGHIZozExnPS8XgRDNSb" cx="70" cy="26" fill="#0b1320" r="9" stroke="#FF5A65" stroke-width="2"/></svg></div>
+                  <div data-page-node-id="KK5MbOaUwPg1MePuObjQqA" class="num"><!--pnid:QtiS4iUeNF0CpkCTndwF1F-->LOGISTICS</div>
+                  <h2 data-page-node-id="GZPJ502ocRGplfiPi5fTgb"><!--pnid:P5ycIRrmTtQy3lTA4un5cq-->补给线即护城河</h2>
+                  <div data-page-node-id="9TcJ01V28CmsALVYIPtWca" class="st"><!--pnid:zUTqKSu16mXFzixKh6Bu9P-->补给率随距离<span data-page-node-id="sR6JS2md7INz0D4Qt23pu1" class="hi"><!--pnid:p1G0PiiRogH25twik9cM8l-->指数衰减</span><!--pnid:mz9a2mv883oaVb997lbvHL--> R(t)=R₀·e^(−kt)。<br data-page-node-id="uspmH7lx24gP9VvUbBYxpO"><!--pnid:WuCezMZ9ffwAE7VO00DAGP-->切断敌方补给线，比正面强攻更致命。</div>
+                </div>
+                <div data-page-node-id="4j35ys5DGSueuY2xIDEMre" class="tut-slide">
+                  <div data-page-node-id="OfZNYqhlfNZPO3Mx0zLlgn" class="ill"><svg data-page-node-id="XyOMvxJBnthtXkTU7hvjyk" viewBox="0 0 90 90"><path data-page-node-id="v5hjQ3VHta17gP5Lb8YqOv" d="M22 56a18 18 0 0 1 36 0" fill="none" stroke="#3DA9FC" stroke-width="2.6"/><path data-page-node-id="2Btf6NrFpw9yHVEeKh8JXs" d="M22 56a18 18 0 0 0 36 0" fill="none" stroke="#27E0C6" stroke-width="2.6"/><circle data-page-node-id="uSY5HR7VOq4fTYzcm60Av7" cx="45" cy="58" fill="#0b1320" r="13" stroke="#27E0C6" stroke-width="2"/><text data-page-node-id="yEJTnx2VwLTFauMscAjZGw" dominant-baseline="central" fill="#27E0C6" font-family="monospace" font-size="11" text-anchor="middle" x="45" y="58"><!--pnid:fSzNI2ZIfvoV09D4gb6WVC-->☁</text></svg></div>
+                  <div data-page-node-id="t2uAWphVwyuuc50Kqnwlez" class="num"><!--pnid:ZeRJpiUAC3Y4VgDP3rIst0-->ASYNC</div>
+                  <h2 data-page-node-id="yberAsW9ea0qhralOIeVT1"><!--pnid:bVC0O2RXFwLdF8qbGSHJW5-->异步回合 · 随时续玩</h2>
+                  <div data-page-node-id="CFkSSkhFmUZ2YeXHLPDPk5" class="st"><!--pnid:jagA4bUo1bPWj0lvGW8tRj-->回合推进由云端计算 + 推送通知驱动。<br data-page-node-id="IPQlfYeUCERr29XkG9IvsA"><!--pnid:wePFbzct3fjrmNhdODj8tn-->利用<b data-page-node-id="uKQ6EOH1GKfKic4OBUIBWS"><!--pnid:S95oN7mRxIFkO50bHhJLF6-->碎片时间</b><!--pnid:1Gk3seU0XLYzIYI600KFx9-->推演，关掉 App 战局照常推进。</div>
+                </div>
+                <div data-page-node-id="cbcnRYcYT7ZT7fqvCxlFKm" class="tut-slide">
+                  <div data-page-node-id="rtDNRGzRMheeN2MBECtWmU" class="ill"><svg data-page-node-id="c45CSQvuA942wODt5hL4J5" viewBox="0 0 90 90"><path data-page-node-id="cayQqwjT3xiJpR9OnjjYtC" d="M14 56l32-32 32 32-6 6-26-26-26 26z" fill="none" stroke="#27E0C6" stroke-width="2.6"/><rect data-page-node-id="G8VUgOP1LGqDQ2nYsAaL5Q" fill="#27E0C6" height="22" width="10" x="40" y="56"/></svg></div>
+                  <div data-page-node-id="Lk7Vdy6koCQDLtZe8gsbOr" class="num"><!--pnid:ZUK9yj4HcjlDlkZNVekgFc-->READY</div>
+                  <h2 data-page-node-id="qqltPqOA943gcQH4gRYGOx"><!--pnid:ERa4AiRWVBOJc21F50L6AP-->开始你的战役</h2>
+                  <div data-page-node-id="3xbvJBG9qoIghtPUwNatfP" class="st"><!--pnid:4HJnAoE3hQiQIFxixIqmoN-->首战：<b data-page-node-id="g2D5i6Oq9N5QJ8vsWYwo8C"><!--pnid:1qHtKYFGXG70m10LfWHjqx-->二战 · 东线 — 巴巴罗萨行动</b><!--pnid:4qHj78lPI2JvI1NgPbyFKs-->。<br data-page-node-id="6xyoliS3HDmlS5LpNKybZL"><!--pnid:SRKtZmf9TNjAfe9sevbkrK-->运用补给线艺术，重现闪电战的锋芒。</div>
+                </div>
+              </div>
+            </div>
+            <div data-page-node-id="zYrFo9ZNvANMPfIGR1fvgR" class="tut-dots" id="tutDots">
+              <div data-page-node-id="UG7rcVp4uiuYjuxR874XdW" class="tut-dot on"></div><div data-page-node-id="9AoViNXtLbDv9Iq4t5SLZ2" class="tut-dot"></div><div data-page-node-id="qZEx3ISkKwzUVQACo6LNJf" class="tut-dot"></div><div data-page-node-id="c2MCRXyH89cDhCtntQLYUH" class="tut-dot"></div><div data-page-node-id="nho9JcAhhvKWy5E8I9vhb9" class="tut-dot"></div><div data-page-node-id="W8554fHlehFcSkSVsTxRov" class="tut-dot"></div>
+            </div>
+            <div data-page-node-id="mlrYBTcffd2QnlrZtyvvhl" class="tut-foot">
+              <button data-page-node-id="43GCJnGl41nokxJYEOr6Uq" class="btn skip" data-go="home"><!--pnid:R9XZAsVyhChRYPGnujh9HT-->跳过</button>
+              <button data-page-node-id="NbiLRODRI8eqSaFzaeL62T" class="btn btn-primary" id="tutNext"><!--pnid:uYrxiOw0NEgxSdaGR6hrAU-->下一步</button>
+            </div>
+          </section>
+
+          <!--pnid:ae1EvUKRkHQO68QaQAzriI--><!-- ===== MODES ===== -->
+          <section data-page-node-id="VTZ09vlTwb6xv7eVAtgeZY" class="screen" data-screen="modes">
+            <div data-page-node-id="GceSkv6PNrUBe5snO17BoI" class="statusbar"><span data-page-node-id="gvA0JMN38R2F6WwwduXT9A"><!--pnid:mfXEKoeLpYPpYZZzMcHsJ2-->19:24</span><span data-page-node-id="qfAsLTKpG0De7eFZ3ZSkVn" class="right"><span data-page-node-id="n3IvSh292uoQtIgIyW40fP"><!--pnid:dsoO5Wd8mf8H7PofD6gwmT-->5G</span><span data-page-node-id="0vy0MwDOCcFlpdMNF5iY2n"><!--pnid:bsPeaHWPMfyMjQwnwvtHAF-->82%</span></span></div>
+            <div data-page-node-id="zTiLBaQxprWdmSCrNSduHO" class="pad">
+              <div data-page-node-id="cLQuAKARaETOEyz4zvcfxq" class="tagline"><!--pnid:yGheEmSHqDpYUXCi8dxxmU-->Three Modes</div>
+              <h2 data-page-node-id="EG2inIHGJPfzrD76XwR3DF" class="t"><!--pnid:ObV5SYbWapsM7mdiykHfY6-->选择作战模式</h2>
+              <p data-page-node-id="OE7aueKfvKV4Epi0UGVXlc" class="muted" style="font-size:12px; margin-top:8px; line-height:1.6"><!--pnid:if1xCd5ElDcNpBF2QA5ibR-->同一套底层引擎，用「规则开关 · 信息密度 · AI 强度 · 单局时长」四杠杆分层，避免维护三套代码。</p>
+            </div>
+            <div data-page-node-id="pBUyw1x92gnvsjkYiNFYDj" class="pad" style="padding-top:4px">
+              <div data-page-node-id="9PCd6B6GXWI9qqKvBq1ycW" class="mode-card rec" data-go="battle">
+                <div data-page-node-id="vsuCvergCrnMZi5cUMSndO" class="top"><div data-page-node-id="o41GC2QY2hO64HRPdTdWTt" class="ic"><svg data-page-node-id="ih8jPQCBi70E1iREOYpMhU" fill="none" height="20" stroke="#27E0C6" stroke-width="2" viewBox="0 0 24 24" width="20"><polygon data-page-node-id="qZCLKFplEbSJsE1hNQJMnP" points="12,2 22,8 22,16 12,22 2,16 2,8"/><circle data-page-node-id="oODM6Hl71E4kTcK1WWx9ez" cx="12" cy="12" r="3"/></svg></div>
+                  <div data-page-node-id="nP50DcEVXLSQjSntvwVGlM"><h3 data-page-node-id="Vu2mnL29RHdLIvUGR6wHT3"><!--pnid:bS8Ptm0XlyWmkBKJtt3vI7-->职业模式</h3><div data-page-node-id="4UH2dEwvdQQdwknL748MDU" class="en"><!--pnid:qhZdkymOgCb1vYt4izGouB-->CAREER · 全系统</div></div>
+                  <span data-page-node-id="PZ1g7TS5qgmkW1j2yZSlRQ" class="chip accent" style="margin-left:auto"><!--pnid:nZLp2C2H5uw6Qsl0axaGsK-->首发</span></div>
+                <p data-page-node-id="S22D2YCEsQNLEqDYGx05dQ"><!--pnid:AW9lPZg3oFbx0EddI7lVvO-->硬核拟真，继承兵棋玩法范式。六边形战场、真实后勤补给线、士气疲劳、指挥官、制空权——移动端的深度兵棋。</p>
+                <div data-page-node-id="tTjs9LSxce6quzJ4xs9Jkk" class="lev">
+                  <div data-page-node-id="1tzme16TcPfcSzlIyYiGGw" class="li"><b data-page-node-id="G8Nfx45cEAhhB4NeTm8raa"><!--pnid:ZZKLypZDSsmcrGPEd1imsM-->信息密度</b><span data-page-node-id="8RQgxNAS72XVMmxW98Kmp6" class="bar"><i data-page-node-id="RsDTgWKIp0iaFggllHaSbF" style="width:96%"></i></span></div>
+                  <div data-page-node-id="1cn9gNyr5k8UDiMIvSJikF" class="li"><b data-page-node-id="9Om1e1MpKHG5taHmJjRbMc"><!--pnid:f0B9KWSPWjOX8toHYPtMSA-->AI 强度</b><span data-page-node-id="NXloyYK3Mmrd48HMM30ZHw" class="bar"><i data-page-node-id="zNy6QsIbPx0eh5glgDzVma" style="width:92%"></i></span></div>
+                  <div data-page-node-id="oeqoMNO3B5C9ALVaBGAGQN" class="li"><b data-page-node-id="u16rtIQubKp9xeiAyVuKfY"><!--pnid:htSMZ6yuMgoRWaw53ArBit-->拟真度</b><span data-page-node-id="RjfuhNbVDuumHJxT0QHGxr" class="bar"><i data-page-node-id="WMUPzseKxvSBsxPnXYsZ4V" style="width:100%"></i></span></div>
+                  <div data-page-node-id="G9S0jC8X8DEThmUkHOSAio" class="li"><b data-page-node-id="PXSmLXy1GxXNra339Ox8O6"><!--pnid:nu2EjTtSywAMSNMo1uKANZ-->单局时长</b><span data-page-node-id="yc1GCOj0RyOcx4LiuWrMFP" class="bar"><i data-page-node-id="Tm3Yu09gVUnLLYc87BktOt" style="width:88%"></i></span></div>
+                </div>
+              </div>
+              <div data-page-node-id="Ni5UKZ7844QFdvOKL4BwDv" class="mode-card" data-go="battle">
+                <div data-page-node-id="wJJlvRQKPFFHwYhksOHoUw" class="top"><div data-page-node-id="PZRVPeUONNAHfuPl8w4HJO" class="ic"><svg data-page-node-id="3YqjjreZlHE4wzD5N5aWrB" fill="none" height="20" stroke="#3DA9FC" stroke-width="2" viewBox="0 0 24 24" width="20"><path data-page-node-id="lCHFYQGHFvOCrKSJnkwmdV" d="M4 18l5-9 5 5 6-11"/></svg></div>
+                  <div data-page-node-id="ISIR4LidtRRNH9CDnQAoMk"><h3 data-page-node-id="GA0d5lqTnBlgDSCpY2XOAp"><!--pnid:aQIggZhb0IuCp7p7Xpk5fk-->专业模式</h3><div data-page-node-id="0hPTgrZWuMGvPqFl2RWYTJ" class="en"><!--pnid:c9JJy1r6WERA2AADfe1X2s-->PRO · 平衡</div></div>
+                  <span data-page-node-id="wfekAKQVz9p9ReCCzfAYl0" class="chip" style="margin-left:auto"><!--pnid:ykSoHZtqEOCwTfXacylx0H-->V2.0</span></div>
+                <p data-page-node-id="uEwUSy9b9ujN95ezjDZAje"><!--pnid:lQgNPr7re3PqAvkyeoTil2-->休闲到硬核的转化桥梁。裁剪高级项，后勤简化为单一补给率，单局 30–60 分钟，保留策略深度。</p>
+                <div data-page-node-id="Dzydyf7SyDlEIHwyJAFOa1" class="lev">
+                  <div data-page-node-id="bmWzBAxDpiiZ8z6Slo2IqE" class="li"><b data-page-node-id="XQnhW0QjNpMw5lSEv0kqd1"><!--pnid:zV2oLEBGXvZF9tcnwhluK9-->信息密度</b><span data-page-node-id="lYaqNJRh37cdUwD2CpozJM" class="bar"><i data-page-node-id="GkLEuf1iB38ywlfNRfqmYl" style="width:64%"></i></span></div>
+                  <div data-page-node-id="Lt9CcyzWneWnpDwG1VnPYw" class="li"><b data-page-node-id="jaLJaoDXqcg1istM8tEQcD"><!--pnid:03b1tEBIWWCni9QSTapYIF-->AI 强度</b><span data-page-node-id="ogQTFryfeWViaJO0LdSljw" class="bar"><i data-page-node-id="JgqjKHjn4jUqiyc355Krn5" style="width:66%"></i></span></div>
+                  <div data-page-node-id="o9DFuAiEsWigdGKB6Hm2xQ" class="li"><b data-page-node-id="azVN8WlKmnoFCiYnr32X1N"><!--pnid:I6cdUhnq8V3Pk9bvXvBD4K-->拟真度</b><span data-page-node-id="TsIK7Ku6n7n10kRGtSYg6y" class="bar"><i data-page-node-id="jS43P6Id8dmivOZBwV9VCc" style="width:55%"></i></span></div>
+                  <div data-page-node-id="SwlCXi0JHcT9napaTKahps" class="li"><b data-page-node-id="QND9ySn4kXgEZQDIVaDspB"><!--pnid:0u0fnodK0MNvkVRjKIFOF5-->单局时长</b><span data-page-node-id="62xjpqFcBTnekGWeNoLl48" class="bar"><i data-page-node-id="8zDvXM2TGTrxPOyJso7S8u" style="width:52%"></i></span></div>
+                </div>
+              </div>
+              <div data-page-node-id="kN2OY0CAwX87vD7bDvx5XT" class="mode-card locked">
+                <div data-page-node-id="svgeOrGiLdHWLbGVZxDFWe" class="top"><div data-page-node-id="cjL1jsF8PXXAlJZaqmBI9w" class="ic"><svg data-page-node-id="PCO67sJ1coJAczr9p1XS4U" fill="none" height="20" stroke="#93A1B8" stroke-width="2" viewBox="0 0 24 24" width="20"><circle data-page-node-id="XvuIH2MptplWRxKg8HV78G" cx="12" cy="12" r="9"/><path data-page-node-id="GfGbbB4tNzUNp1kEuxmfoh" d="M8 14s1.5-3 4-3 4 3 4 3"/></svg></div>
+                  <div data-page-node-id="7JR8Z0GpQXOS7vUyfN5iww"><h3 data-page-node-id="mCtsMtnV61bMv9rX1k2spW"><!--pnid:u8pNgxofaGwBSXGC2bEPC4-->娱乐模式</h3><div data-page-node-id="3Lmjnod9GMD09JYyECptJB" class="en"><!--pnid:6RQSK55Zj2ad015eNFXXFW-->CASUAL · 极简</div></div>
+                  <span data-page-node-id="JFCOn0Wh0MHnEam5Vao57C" class="lockmark"><!--pnid:YvMNImDSwzf1me8EWmRdTF-->🔒 V3.0 待解锁</span></div>
+                <p data-page-node-id="iQTaSBGyIAYY15TMm66cw6"><!--pnid:4ldS6z8WYlpuFvvVSlAmRZ-->由职业模式删减抽象而来：砍补给线/疲劳/天气，图标化、强引导，单局 10–20 分钟，拉新降槛。</p>
+                <div data-page-node-id="tE9wwA7m4r2sLLlPeVnN94" class="lev">
+                  <div data-page-node-id="fo0NJ47RkT7whhGRgrmOHC" class="li"><b data-page-node-id="pV3HP7OXhDEycf4Ve50YQ5"><!--pnid:7JC7zQRvpVB6K0Pzw5yKYC-->信息密度</b><span data-page-node-id="28qGWYFaeMqba1vG9SqRiN" class="bar"><i data-page-node-id="066lNHjsPdANVsA6e9DabS" style="width:30%"></i></span></div>
+                  <div data-page-node-id="CPnQeGpdkmtIxmhUhnQgjT" class="li"><b data-page-node-id="J12X8tcX5QykNJg8xuztT4"><!--pnid:sxq4B3yty5pcTp89fdrWvG-->AI 强度</b><span data-page-node-id="IFnRWcbRVjfu2TcyPUsfgp" class="bar"><i data-page-node-id="eIRVo8ZQ1q5sUYNB6Ytniw" style="width:34%"></i></span></div>
+                  <div data-page-node-id="TWxa5M5FCpmdZSDG8ZE1wH" class="li"><b data-page-node-id="mANOpiBE6ByPG5UC4UWLuJ"><!--pnid:FTwDF2PWSl6cFwA9hgA8w5-->拟真度</b><span data-page-node-id="GKDbDZVVP5J1cuOJFZGOk4" class="bar"><i data-page-node-id="SPIxhEWLKw9dEGX4TTWCm7" style="width:18%"></i></span></div>
+                  <div data-page-node-id="n8rOoMFIfwL7wy0xClF1Y4" class="li"><b data-page-node-id="olBqhOUo1Cj8MYLp4YnuDC"><!--pnid:3DeyoDnKAUd0wj0VzoJ7Sr-->单局时长</b><span data-page-node-id="YLGH1BfrtpiiJ05XVkv6aj" class="bar"><i data-page-node-id="DGb00tmePaqPyvstO3mV9a" style="width:22%"></i></span></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!--pnid:r8jtB5PJ7YYCro9DCr2pDP--><!-- ===== LOBBY ===== -->
+          <section data-page-node-id="ElfGXD7FHRvUHLNhZy0iBi" class="screen" data-screen="lobby">
+            <div data-page-node-id="mX5V0Hm9vYrX7KmuQzHdaQ" class="statusbar"><span data-page-node-id="seCptSBjMBWelHy3FDdCJf"><!--pnid:6GnNI5Zzlprr30NGD3FIzG-->19:24</span><span data-page-node-id="gLIqPwJPZeZqUsgMW9SJjp" class="right"><span data-page-node-id="8jU5D36DRuON9FmCgKi4xc"><!--pnid:bEcMN7zmLVKouNkOsOf7Ue-->💎 1280</span></span></div>
+            <div data-page-node-id="hmGeZWxJDwHGUixlTENVUI" class="pad" style="padding-bottom:0">
+              <div data-page-node-id="dGDBZBZK5Jqy9KP2uaC2Fe" class="between"><div data-page-node-id="aWtKyXhaWZjO0a0WLpIhyw"><div data-page-node-id="HyHQF8jWyRXatt5bIlGerP" class="tagline"><!--pnid:AsXp68R9jil57mmprxn9h4-->Campaign Library</div><h2 data-page-node-id="7ALA2aforDQYLqi9eTWk0q" class="t" style="font-size:18px"><!--pnid:NWqF93TJ26DP8gwz23Geq6-->战役副本</h2></div>
+              <span data-page-node-id="46u2Yt25HHGn5lBKBBm4o2" class="chip gold"><!--pnid:83Soa245VQ5XZCsj8RzwbM-->二战·东线 已拥有</span></div>
+            </div>
+            <div data-page-node-id="kvubXySAhvrca3kVEDvi9H" class="filters">
+              <button data-page-node-id="pPhEFTYvMJnVJuEd1lm3ER" class="filter on"><!--pnid:eafH3B3XaVxZonSgpHMoUW-->全部</button>
+              <button data-page-node-id="bHxo97KGjX6NKb6ZTfeffW" class="filter"><!--pnid:2EyeHY5M1ymuDC98iPDxt7-->低敏感首发</button>
+              <button data-page-node-id="yQCnsuFtG2mWLS5Go3rLyv" class="filter"><!--pnid:5TndjoX0uGKReyjXJC8o8M-->高敏感后置</button>
+            </div>
+            <div data-page-node-id="UFP44Tl9BTIhPpyNTtUhuv" class="camp-grid">
+              <div data-page-node-id="Ew2cPDDKNJtxGWLXmkNlpT" class="camp feat" data-go="detail">
+                <div data-page-node-id="uXZsQ7cUJNJL0UTPDqqgev" class="map" id="mapFeat"></div>
+                <div data-page-node-id="fhmhle5B9H2M07gLeKnjZD" class="info"><div data-page-node-id="WpNPSzJX6ssmz9AzNRdygb" class="nm"><!--pnid:zM3rgGAPsRigZ1z7OKS0cj-->二战 · 东线</div><div data-page-node-id="3wXBPDcmxRoonR6U5ybggo" class="pe"><!--pnid:tH9vubG5uHvT7yx01PsvGA-->1941 · 巴巴罗萨 → 柏林</div>
+                  <div data-page-node-id="0iMWZZf9mpWkrMXuTSqZ9j" class="bot"><span data-page-node-id="1lQYOdZTZIDaFeEeaFU3gg" class="chip accent"><!--pnid:6TPTJTPgY06RwYQC7FT5s8-->低敏感 · 首发</span><span data-page-node-id="YN1uIXjX9QsvpLY7TXIVEE" class="own"><!--pnid:ASfvNwvF8XfJ93NQFLNHJL-->✓ 已拥有</span></div></div>
+              </div>
+              <div data-page-node-id="nVNykJYOclJZk4xK0LrFYE" class="camp" data-go="detail"><div data-page-node-id="mSTejB9IK4zZteMKG1eO6u" class="map" id="mapW"></div>
+                <div data-page-node-id="blpSS3diXwGzUpEu8UbtSG" class="info"><div data-page-node-id="KHleXVNlsy5Mf77v04tORx" class="nm"><!--pnid:BubVyBBJxX4Hk05OsPxFKb-->二战 · 西线</div><div data-page-node-id="lEo8bmOrAf7CqoTz94t3vc" class="pe"><!--pnid:IY00fu7OHGD23P5cxrzLnu-->1944 · 诺曼底</div>
+                  <div data-page-node-id="6NbUSvSOWrZp7l1PfObj5w" class="bot"><span data-page-node-id="GM2dlv5zM79G27YrG85thT" class="chip"><!--pnid:qfrHMnlek76ogHTJ6HJVkb-->低敏感</span><span data-page-node-id="24cUMlmPsntZWs2cjMiKUZ" class="price"><!--pnid:SMA5IL6L55dlWum0U8C5T2-->¥38</span></div></div></div>
+              <div data-page-node-id="OzQmDUqkzXBAvtOLooKGuy" class="camp" data-go="detail"><div data-page-node-id="gROqHNdSuSW9LZtUri2cx2" class="map" id="mapW1"></div>
+                <div data-page-node-id="5NJhWPVkWuKTNKbMQmEYxn" class="info"><div data-page-node-id="sPNffzz2RtzzH0iJlPE94x" class="nm"><!--pnid:nzxtnWBdnLoDPbs0doWmkE-->一战 · 欧洲</div><div data-page-node-id="HWAKF0sNhKumgNhElnzDyZ" class="pe"><!--pnid:1ZKYwAbrTGpSBF3819FjHE-->1916 · 凡尔登</div>
+                  <div data-page-node-id="QvzFdB8QKfhxuXDDaYE64B" class="bot"><span data-page-node-id="C1ga7bFB2BgiZFQNVd9aMw" class="chip"><!--pnid:d0nWwI06cTofgWuhX6B3QC-->低敏感</span><span data-page-node-id="byNmLfJykq1PEyZXvvML8o" class="price"><!--pnid:cOQYeCVScP8fmASFD1hH1V-->¥30</span></div></div></div>
+              <div data-page-node-id="Y2eh9TVXFL1NqxXlX8nudj" class="camp" data-go="detail"><div data-page-node-id="z1ir62WXTX9ClzeGNJmmSN" class="map" id="mapR"></div>
+                <div data-page-node-id="fg7ipAvdzVQcvaTajIedpJ" class="info"><div data-page-node-id="zDg3SNcA8dZ0DIc5DhXUD6" class="nm"><!--pnid:5QnRtlIyNYCoqcioQkkiG5-->抗战</div><div data-page-node-id="iAEsXfxw9AOsyAUQIVx86L" class="pe"><!--pnid:HAuitaUrOTQ4ftinBCHJ2c-->1937 · 待合规评估</div>
+                  <div data-page-node-id="SmRgwEZEEY7hkLNOLX9VRT" class="bot"><span data-page-node-id="9mAHJmK70yrM3Lfqkis4UK" class="chip danger"><!--pnid:joyAmScvYv03mYSTIXPnEQ-->高敏感 · 后置</span><span data-page-node-id="DmdubqNAf8epMSWt7MzEa0" class="price"><!--pnid:otTtrnzOv8DnXKRRVNQ7Ea-->🔒</span></div></div></div>
+              <div data-page-node-id="Mf8DjCt2fKEsseP9C3hLsv" class="camp" data-go="detail"><div data-page-node-id="vyTokfIOFNW0jilTZ9Tk8u" class="map" id="mapL"></div>
+                <div data-page-node-id="ZBs88TisqtZ05mZkJmvTBz" class="info"><div data-page-node-id="XOZUXI5bSirg84w8dJVBKI" class="nm"><!--pnid:cktOA975LB4EAtv3Sqn21J-->解放战争</div><div data-page-node-id="DmAbg0UtIAaHOu2TVTylCW" class="pe"><!--pnid:qCvtltCiqSolvq7sKZ4yvv-->待合规评估</div>
+                  <div data-page-node-id="SkEwSC1pWBufMVkrvDVp7J" class="bot"><span data-page-node-id="yZDrpParxw7eHsu3H6xMzR" class="chip danger"><!--pnid:UsskPaVSE4ZhGlRNWWRf2d-->高敏感 · 后置</span><span data-page-node-id="WOYpER1mYONVjSWWhz6ma4" class="price"><!--pnid:jD3u1G83amFpUmwEl9cce8-->🔒</span></div></div></div>
+              <div data-page-node-id="slrAUHyC0Y6jSwXri2bchq" class="camp" data-go="detail"><div data-page-node-id="wZAjk3xCbNgSARJCQLVhax" class="map" id="mapK"></div>
+                <div data-page-node-id="134EMyEJdVTqLAHO61TXOx" class="info"><div data-page-node-id="sNpALpFusJYSh7j6atniig" class="nm"><!--pnid:Nz1GLA3yMy3hs9jRlVqmCp-->抗美援朝</div><div data-page-node-id="xeT52LshOHnjbGbZsRAzY2" class="pe"><!--pnid:jQdzuZg6eP0NgL41WY9gux-->1950 · 双重敏感</div>
+                  <div data-page-node-id="CK50SPSLFIKs9p0QybO05N" class="bot"><span data-page-node-id="Se6RPBDqEnsfxNQOhLrSeu" class="chip danger"><!--pnid:K5s0ZJZAKGPhFA4qBciWSP-->高敏感 · 后置</span><span data-page-node-id="had3T5TQr1W0nERAFqv45f" class="price"><!--pnid:LYm8g07OfHFukwUiYQgnty-->🔒</span></div></div></div>
+            </div>
+          </section>
+
+          <!--pnid:w0etkO3LmgIj8vfObIkLhJ--><!-- ===== DETAIL ===== -->
+          <section data-page-node-id="kRSvmKWTSQs08wspXEHMOu" class="screen detail" data-screen="detail">
+            <div data-page-node-id="sr70bWyONQ7fHVkULdJRlT" class="statusbar"><span data-page-node-id="qy5ufGwQcUGHil5uOZ8ycQ"><!--pnid:jgqc5SIoHhUZgjngBfcxVy-->19:24</span><span data-page-node-id="oYXbZJvJxpg72Z7uLDFMZV" class="right"><span data-page-node-id="IZVyJY3rHE7watsCCoT9P0"><!--pnid:ED2Zs7tevrVfMpbcJ6jmiQ-->💎 1280</span></span></div>
+            <div data-page-node-id="oAjwFuMhepl34gSDk8YtbJ" class="hero-img"><div data-page-node-id="37M5XGvcZOiZBiL0Ofv0Gj" class="back" data-go="lobby"><!--pnid:qTzi2yOu2XeesHxrCMehA9-->‹</div><div data-page-node-id="ZV40yv4DkSnosGtYdXbrlg" class="map" id="mapDetail" style="position:absolute; inset:0"></div></div>
+            <div data-page-node-id="BgbpruSRP7PQ7l4Wf3tqjG" class="dl">
+              <div data-page-node-id="zvlUhDdHb1FDXC6Vcqarw2" class="between"><div data-page-node-id="c0atvi7uRIF4SukaemgkMD" class="nm"><!--pnid:SD2UxcL7AuFfM9muG1QCXw-->二战 · 东线</div><span data-page-node-id="SadaaTCTIxVK1q85PIOGtz" class="chip accent"><!--pnid:n3c26QNC3dZgPmfrPy2dGR-->低敏感 · 首发</span></div>
+              <div data-page-node-id="DFST4j6rkOZjVn486scHZ3" class="pe" style="font-family:var(--mono); font-size:11px; color:var(--faint); margin-top:4px"><!--pnid:nN2wZlPO6ldpzxSSPktcp0-->1941.06 – 1945.05 · 职业模式</div>
+              <div data-page-node-id="f2ANqSFRFj7SuKLRUJZ4S9" class="stats">
+                <div data-page-node-id="dgIk6nk0hkUHqQXpIU4YZK" class="s"><div data-page-node-id="yuiorI3MhO0w2cdby3CI8J" class="v"><!--pnid:gwIIIv5mQMVprAmsk5gRIe-->1200</div><div data-page-node-id="dWL9EMW9IYGt4xYrsnh2qR" class="k"><!--pnid:GSyGOljSwp60L5erydzs6Y-->地图格数</div></div>
+                <div data-page-node-id="F3RlUrtxGQcWkYiTSUn79J" class="s"><div data-page-node-id="XBr8bEsXWgVIOoZJ4faYcj" class="v"><!--pnid:veJTxbQo8Pa40QMwgY3elS-->86</div><div data-page-node-id="BRLWMCkkDW8eSfI8b8eh4T" class="k"><!--pnid:LoOyekIYKyh6b6IY4KPe4s-->作战单位</div></div>
+                <div data-page-node-id="RTVoirnx9IN6Ndjb9xASAD" class="s"><div data-page-node-id="EDHOhDLj7aix5Y2toUYfEg" class="v"><!--pnid:aaKmNr8T6D5W2c5qAdxgc4-->~3h</div><div data-page-node-id="wztvvACpwrNpgj1KaRhOmH" class="k"><!--pnid:F8SSyGBGlj2SYagxF7xDgu-->单局时长</div></div>
+              </div>
+              <div data-page-node-id="OukF3weuVgc60yA3yNyzl2" class="scn">
+                <div data-page-node-id="CZTFn9yRtNp9FTpaMljEbV" class="li"><div data-page-node-id="PCfdIPXYY0Wr75dc00JNkg"><div data-page-node-id="UWegeI1GSSLAzS0AdpYtEY" class="n"><!--pnid:I485tSVxfCKYoX6axDblao-->巴巴罗萨行动</div><div data-page-node-id="876SdncghjlF9cCwTWsuGU" class="d"><!--pnid:326JreHfU5xKLqAdSYkQLo-->德军突袭 · 1941.06</div></div><div data-page-node-id="ZxBhRc3VoVYzEqYRLNk41V" class="go"><!--pnid:vZheoVseemNrqvR5GYhO4I-->›</div></div>
+                <div data-page-node-id="gnFZPVV6D7yco2MQHlb6Go" class="li"><div data-page-node-id="TLmusa36A8pcDREDK8A0eq"><div data-page-node-id="bvL2OdE2HJ0SwEXYzkR0Cc" class="n"><!--pnid:xGaCG6MPx8uJvGUge6XrYg-->莫斯科保卫战</div><div data-page-node-id="wpkeS6in0cdw1UxbrhTysM" class="d"><!--pnid:OBscDInTU5fGH56dbTnLyD-->冬季反攻 · 1941.12</div></div><div data-page-node-id="OgeaimPsq50jDvJHug4IoJ" class="go"><!--pnid:t614M6FrPhdWbRVjwnNo0s-->›</div></div>
+                <div data-page-node-id="ldLxYV9WRdOpw5ZazpjLbF" class="li"><div data-page-node-id="HIMjrujA6W51JhRr82f985"><div data-page-node-id="HTUTSdbFgFqKGqJ0AIvQfe" class="n"><!--pnid:anI6bGllJdhDDNHxAqJRwX-->斯大林格勒</div><div data-page-node-id="dd5amHwJlBvt5VQxEnChXR" class="d"><!--pnid:OUdexvtWXm5lYo6MkIX0AN-->钳形合围 · 1942.08</div></div><div data-page-node-id="xptdwrWfwd8c2jvRYWjewa" class="go"><!--pnid:azhsPrffvLqqem6wBljRHP-->›</div></div>
+                <div data-page-node-id="qlJPvmCRfr9hkAx78l9pZw" class="li"><div data-page-node-id="7bxAE3XBBMN9QN96kK0nT3"><div data-page-node-id="nsJmrN3RNmKJEDq2MIVyxW" class="n"><!--pnid:6srpiWIaTVwcuaiMtuOKbI-->库尔斯克会战</div><div data-page-node-id="PaJhsrkJkZtYyeW9wuLZjy" class="d"><!--pnid:zGr8zbRXJPEz4LW6nPLHUl-->史上最大坦克战 · 1943</div></div><div data-page-node-id="3AJQHCo2wOYf5j4617RbSo" class="go"><!--pnid:U0Rx8cue1MaFYd02KJLnW4-->›</div></div>
+              </div>
+              <div data-page-node-id="yyWPKstnnLyfMQgG4fhe7E" style="padding:16px 0 6px"><button data-page-node-id="nTV27nJ8uaRSDULhWVgdq3" class="btn btn-primary" data-go="battle"><!--pnid:Bbhg2EC3hNvIHcxDokSfwH-->进入战役 · 继续推演</button></div>
+            </div>
+          </section>
+
+          <!--pnid:nk2Y8dl0rXfOZLZuKhqrfW--><!-- ===== BATTLE ===== -->
+          <section data-page-node-id="llaqu4v9OraYSIDhJ7NfcU" class="screen battle" data-screen="battle">
+            <div data-page-node-id="p6mjRjkwINFk30SR6GkrB8" class="gtop">
+              <div data-page-node-id="khIG4C5y9Yk2CAIGC4xqjD" class="l1"><span data-page-node-id="aCspFqchEMSESP6Hua59vD" class="turn"><!--pnid:Vaei1uWqd7ZgcxybZ9HpFs-->回合 12</span><span data-page-node-id="LXrxxXuH97PjW56T5BQu9m" class="phase"><!--pnid:qzi2Chc3cIu57xW0MFpUBQ-->▸ 机动阶段</span><span data-page-node-id="xicLm3Z835dtXU3Z3COlyK" class="muted" style="font-size:11px"><!--pnid:oRtf3fp28UH5PSh5PjDiT7-->职业模式</span></div>
+              <div data-page-node-id="xdTiQtRYwNTxQiJ8aOOptS" class="res">
+                <span data-page-node-id="ffrLpsyeyCR5BEOhNXDQx1" class="r"><span data-page-node-id="sMaarCiLxcIECTSENPDkzJ" class="dot oil"></span><!--pnid:AiKdzAeW5VpRsifiotH3tl-->油料 78%</span>
+                <span data-page-node-id="TgGfY4ckhJoPuY1BA3lFdZ" class="r"><span data-page-node-id="mxfUvP5PDsQYap1xY4q4j6" class="dot ammo"></span><!--pnid:Jae48wFFpJq4s1Sq2sccnU-->弹药 64%</span>
+                <span data-page-node-id="MRhzh2uyvbkH8Kq0jF0Pyk" class="r"><span data-page-node-id="jvmUKlzSvqDtXOynl3m7TE" class="dot food"></span><!--pnid:pVcgePaYquTNNSyUZXRfM8-->口粮 91%</span>
+              </div>
+            </div>
+            <div data-page-node-id="N5NaTHrld7Xxeb6axyj5LD" class="mapbox">
+              <svg data-page-node-id="IBTxtWJJOgYxZ5kz91SZAu" id="battleMap" preserveAspectRatio="xMidYMid slice" viewBox="0 0 384 470"></svg>
+              <div data-page-node-id="VHzc9RXMJf6FVHXAB2nYol" class="map-legend">
+                <div data-page-node-id="ztQP1yhgbrOYUmgd1Wpui4" class="lg"><span data-page-node-id="TRs0Vo8voP3lIH9sZxpq46" class="miniunit" style="background:#27E0C6"></span><!--pnid:QCMnpI0CzBYRNeDwKT8s1V-->我军单位</div>
+                <div data-page-node-id="AoqcaAqLLe00bHuVdYmUf6" class="lg"><span data-page-node-id="BERdehKaYK6F4cV1f0aU0m" class="miniunit" style="background:#FF5A65"></span><!--pnid:HYqUAXZY5I6QRedLqCR8cf-->敌军单位</div>
+                <div data-page-node-id="pky2nUFfeoBEvxCZSXFV89" class="lg"><span data-page-node-id="EUH6d45aIceTFiqNHL42cg" style="color:var(--gold)"><!--pnid:OeyITEqBzrZcNDLtKVPEYv-->┄</span><!--pnid:bTlcujikbv5jZMVcoiZwNI-->补给线（断链预警）</div>
+              </div>
+            </div>
+            <div data-page-node-id="ya6smykuEfgVcEpHJaScha" class="actionbar">
+              <div data-page-node-id="bLh0Aqh2Dadbr7cZk5cnXk" class="ab on"><svg data-page-node-id="YKCxYziQlqa5uFAjahu3h5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path data-page-node-id="1BpAWSP9FWeIdnexPa6KxG" d="M12 2v20M2 12h20"/><path data-page-node-id="Xu1opNrUGPZSp48xGbgRbB" d="M9 5l3-3 3 3M9 19l3 3 3-3"/></svg><!--pnid:iLZ8KOKRrRIkNTY2THfvkA-->移动</div>
+              <div data-page-node-id="YXQTumhW3zjmEBljNEDJzv" class="ab"><svg data-page-node-id="V5k7QgsubzfJLJC5I5WGFg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path data-page-node-id="EnIIbQYaAepV2vM5UWHFP9" d="M12 2l3 7 7 .5-5.5 4.5 2 7L12 17l-6.5 4 2-7L2 9.5 9 9z"/></svg><!--pnid:QcRwGslfSWotLsvr4scD0c-->攻击</div>
+              <div data-page-node-id="eAsXtj5n4YAgbVgDLi7KGc" class="ab"><svg data-page-node-id="z87ia3saNJIJGBUu5RqvlW" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path data-page-node-id="rlkFA7ce29vaYJTRS6yx7t" d="M3 7l9-4 9 4-9 4-9-4z"/><path data-page-node-id="vKif7an6ebbAY4EoglXXel" d="M3 7v10l9 4 9-4V7"/></svg><!--pnid:oFeyduxZVZm4ZykQd3TUZ6-->补给</div>
+              <div data-page-node-id="n65lHF05I6Gi8VuRWYRiYO" class="ab"><svg data-page-node-id="THsGlE8M5OVcv6RqVVePI9" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle data-page-node-id="LEhbmsAStlVt6BnZOhZjUy" cx="9" cy="8" r="3"/><circle data-page-node-id="FjJwfQOKDyJLCZlqlO8oOa" cx="17" cy="10" r="2.4"/><path data-page-node-id="JuAAJFn7FuLw7xLdurYRMN" d="M3 20c0-3 3-5 6-5s6 2 6 5M14 20c0-2 2-3.5 4-3.5s4 1.5 4 3.5"/></svg><!--pnid:kpmIbFKJD9tWbv4onbFt28-->编队</div>
+              <div data-page-node-id="JELGlIOVHMdM8V334l33jy" class="ab end" data-go="report"><!--pnid:duXWbIEheB7ZaGrR1z2eaw-->结束回合</div>
+            </div>
+          </section>
+
+          <!--pnid:akwrUItaMDa6hp09inQ889--><!-- ===== UNIT ===== -->
+          <section data-page-node-id="hVtmeHmXKlmY3ridgMojXi" class="screen unit" data-screen="unit">
+            <div data-page-node-id="0ZwI1Fztd4HkV2mEEblbo0" class="gtop"><div data-page-node-id="bDv26393HP87R4EQVyJGRV" class="l1"><span data-page-node-id="fByr2X0CraeUC2z3GDFGDq" class="turn"><!--pnid:R6BZRdsNZUkQBMTLpYelo6-->第 4 装甲师</span><span data-page-node-id="77lY7LvoDR8s9jrTF63B0Y" class="muted" style="font-size:11px"><!--pnid:h9fvWEKkfk6tv9bZ5uIIqw-->集团军 · 师级</span></div>
+              <div data-page-node-id="nGVGMGfAaskHCrPYbrfx0J" class="res"><span data-page-node-id="ABQdNLh56akUMppTfWPlAD" class="r"><span data-page-node-id="3uZ7ykizNhjwbxPS3u395D" class="dot oil"></span><!--pnid:hU2p6Quxj0SXd44oXaXbzn-->78%</span><span data-page-node-id="3dXTD7wbDGjqj1swDzghjr" class="r"><span data-page-node-id="PS6T7AUmG5kOdi7oIxPEx0" class="dot ammo"></span><!--pnid:2JwU5KPOmeqQjfpZltU4Ij-->64%</span><span data-page-node-id="2mTeOvOORVf7jP5IzCmuTv" class="r"><span data-page-node-id="XcifouDqktw4DhX8lf4QUJ" class="dot food"></span><!--pnid:jANcbiE7j1O8wD9EBaF1dN-->91%</span></div></div>
+            <div data-page-node-id="MW5GRqjPABruZdssAb9TOu" class="uhead">
+              <div data-page-node-id="jJ9UOzb9jWQbnBvtvQsUXc" class="unm"><!--pnid:ofZOz7f31DPxcQbCLPzuwB-->第 4 装甲师 “钢铁矛头”</div>
+              <div data-page-node-id="rK3akmu2oF2QOaaJtvFO5k" class="utag"><span data-page-node-id="TkqirOOvd77M3MiNrRpMyU" class="chip accent"><!--pnid:I98G2W1lMRBRLcsH4xbEty-->装甲师</span><span data-page-node-id="jcFMJSoDSB0B2YDmvgIAKZ" class="chip"><!--pnid:05PdmIUVxFzhdsjxqNXaij-->机动 · 摩托化</span><span data-page-node-id="aiMJUYgZaVSqwWuGEDkSk2" class="chip gold"><!--pnid:6vDEYN93q2tBJQimyPm04B-->已配属航空</span></div>
+            </div>
+            <div data-page-node-id="n3PCJkDfj8v09NSbjuUm72" class="attrs">
+              <div data-page-node-id="MR6qH3oFDBBQ5FpngDxuhP" class="attr"><div data-page-node-id="UB3SWMCjh7MKs26L6J78wZ" class="k"><!--pnid:zMwek9XHnaEUXRcPHWF2z0-->兵力规模</div><div data-page-node-id="aMrRl7JriVbv1z1owC2sp4" class="v" style="color:var(--text)"><!--pnid:edtWsxWCcXCSRqcGYv6EaU-->92%</div><div data-page-node-id="Frm6LfcjzKpRGFfEUM0Zim" class="bar"><i data-page-node-id="34lq3efDolvVwJ0aXWsEl7" style="width:92%; background:var(--accent)"></i></div></div>
+              <div data-page-node-id="gF1SDbXXqArob2werPKvzA" class="attr"><div data-page-node-id="Hl82eQnJ5TKeS3kjBVkVXl" class="k"><!--pnid:L19KMPQlrieCkSJhET6aWW-->装备系数</div><div data-page-node-id="rDtbBtKyp33Hz7ETYjNDOy" class="v"><!--pnid:5F7MSBaZXh22xAHmv22843-->88%</div><div data-page-node-id="LiSjZMEptZTYGxlXK9o3Ta" class="bar"><i data-page-node-id="ym5uVwYvBoNH32PN1iRb4P" style="width:88%; background:var(--accent-2)"></i></div></div>
+              <div data-page-node-id="GfmrgmUi75RgxqBzl76LY1" class="attr"><div data-page-node-id="29D8XMn5IiHCrEwdRadgRP" class="k"><!--pnid:9iPm4bq8sG32AqX9HV6RYP-->补给率 R</div><div data-page-node-id="ioNhpplNxQAoj1T37SmpVE" class="v" style="color:var(--gold)"><!--pnid:9E4YtXzo8cQEKwSKSLbfVV-->76%</div><div data-page-node-id="DurQkIuduYkWkDvXHi588M" class="bar"><i data-page-node-id="6XAUM5pURcWVH6gE98jj3m" style="width:76%; background:var(--gold)"></i></div></div>
+              <div data-page-node-id="YfvxbNyDMcPY04XeZlljAm" class="attr"><div data-page-node-id="P7JdPMmAyfhEDFwj7bv60N" class="k"><!--pnid:V9XcfsgK56ICw7wND8YPn1-->疲劳</div><div data-page-node-id="p4uvFlaqpiDoxWdFXnzhro" class="v" style="color:var(--good)"><!--pnid:6oQeKz9Ue83O8tWs9wDW3U-->34%</div><div data-page-node-id="nweeZD4ODQhPqjKvnWYYV3" class="bar"><i data-page-node-id="8wGqQe700d1eCyRNJLIcfA" style="width:34%; background:var(--good)"></i></div></div>
+              <div data-page-node-id="4VGfQ2hI1GqL5SZvkq7rCv" class="attr"><div data-page-node-id="G7mGdyVfGFnHeAnHezbbwE" class="k"><!--pnid:jlZQWFOeFPc5ikSKKrwpAT-->士气</div><div data-page-node-id="3nLY4ZsGu1Ik5zgNkbCxP8" class="v" style="color:var(--good)"><!--pnid:S0ZcbQMbJ2jhnBX13luhRM-->81%</div><div data-page-node-id="R12m8Lkf72VglSnTx9pn3i" class="bar"><i data-page-node-id="Ox8lmMqS5BeBJ5UzoE2thv" style="width:81%; background:var(--good)"></i></div></div>
+              <div data-page-node-id="YBnmCVmaZNfz0yDbJnOXXJ" class="attr"><div data-page-node-id="FQIwjHG6p2WsBv1yatHYIg" class="k"><!--pnid:YN67It3vNzZk14ItfxYwp3-->训练度</div><div data-page-node-id="0orwj5Y6J9KFXInb8EDAOn" class="v"><!--pnid:N2BqyDpsSnLLR9GpbUituk-->70%</div><div data-page-node-id="Qucn4g7RrgiIDvsxxmj3qT" class="bar"><i data-page-node-id="Nd2sEhJHxgaFx8ozhX3kt7" style="width:70%; background:var(--accent-2)"></i></div></div>
+            </div>
+            <div data-page-node-id="TtcLD7V5g1kK7dLXuxQyBb" class="cf">
+              <div data-page-node-id="NcUvH7CFLzJgJuGAlPFBdM" class="lab"><!--pnid:5aVBMCx0ZsYtGWdaJWGxyq-->战斗力指数 CF</div>
+              <div data-page-node-id="oPiqFKy16Ym8JPU85vERiN" class="big"><!--pnid:CmrQxn6MSZu3VSwiVVzhON-->1.42</div>
+              <div data-page-node-id="0jxIovyoi48oGLBi6Jo1Oo" class="formula">
+                <span data-page-node-id="oAA9Ch4KS6ImFsMVRUJB9j" class="f"><!--pnid:QgvAXXn7hg0lzgnWh3SMxO-->兵力 <b data-page-node-id="ccUklQyMOoErrg1yJcCiWU"><!--pnid:jU7NVNr6aKx1ui21HMbxL8-->0.92</b></span><span data-page-node-id="PndfCTERE22QLSFn4SnM0t" class="f"><!--pnid:34n3Fyb8K7eIEqeQZIQz3y-->装备 <b data-page-node-id="HgCv7cKpN2Ibex6ygYA3EJ"><!--pnid:y7bU058iIMM7MYh22Y5BEs-->0.88</b></span>
+                <span data-page-node-id="hvY9AylwJbVw0wXvezHUuM" class="f"><!--pnid:wLc4gBZOTFtV7n3Fp4pVYV-->士气 <b data-page-node-id="fpXCIFUaIWeJ2c31NDeO8m"><!--pnid:ZDQxbq7qn8Wf3NzfoofEw2-->1.10</b></span><span data-page-node-id="WtkcW1j1W9ETCDQEDLwyry" class="f"><!--pnid:y9gYafzsjBUgor2GIXvjck-->训练 <b data-page-node-id="SFEzPXKH10GMUOgI8pFhjm"><!--pnid:G9hfm5ZHW6eFJp4qznZvYT-->1.05</b></span>
+                <span data-page-node-id="84AlmQB0P0SQk8qSLsFF3d" class="f"><!--pnid:sNpkgdMVJdNW40KtAS78ar-->地形 <b data-page-node-id="2TSQkDPRvpiToMT05enVeU"><!--pnid:cT4v6iBLKx2FYTue8dJO5o-->0.80</b></span><span data-page-node-id="6SucYbAW3l7AoytP2nqwLS" class="f"><!--pnid:VYHH9PnNFLdggjDn9YUD9d-->补给 <b data-page-node-id="Y9uOmXcaH14mu0U4MoEArt"><!--pnid:tUVsRm76MsBwQEiF9Fsxqy-->0.76</b></span>
+                <span data-page-node-id="sAsfijE0JFfONdWdk3Bcws" class="f"><!--pnid:dC3RVwNNclcUwHQ4Vo3t44-->指挥 <b data-page-node-id="fNpa4PZH6vOXzuwEpqkp1Q"><!--pnid:zGnDrzfLcmo9tWGNWbkQjV-->1.12</b></span>
+              </div>
+            </div>
+            <div data-page-node-id="zKe4NLmxE8oOy4niWt4LkK" class="supply-note"><!--pnid:NQg4DvfM5fgG24FM2mYQvg-->补给来源：<b data-page-node-id="XRWbVex5zER20u3HstPYdZ"><!--pnid:oR71ChGurLnnZSkrdpML9Y-->前进仓库 B</b><!--pnid:2E65S6ibBixE4ltdYim2Ov--> · 补给线长 <b data-page-node-id="4r0B6wkQJ72jSRezgHXNg6"><!--pnid:GcrcHibvLsIFosXBBlYpqW-->18 格</b><!--pnid:10vvCbKqHDK9L5VKTpLZ9q--> · 指数衰减后实际到达 <b data-page-node-id="bDynLIJfXiln8vk3hQJ5sf"><!--pnid:myYEzV0wDjM3B1UjTrYhwM-->76%</b><br data-page-node-id="JQZ8fz4t43x0VRHbjjZb8n"><!--pnid:SP11HHzaJX0vK81kxmHOMt-->断链惩罚：若线长超阈值 R→0，补给系数骤降至 0.3，疲劳/士气加速下滑。</div>
+            <div data-page-node-id="WBZElVPEsh3dYDNsLYaqWF" class="pad" style="padding-top:0"><div data-page-node-id="Y3w9CSdJwpEIH4zb0ezWAs" class="row" style="gap:10px">
+              <button data-page-node-id="BThoMEjKvIIRO4tBscSw5O" class="btn btn-primary" style="flex:1"><!--pnid:GOR7Ji7iAxhVu6uNLFDIXf-->移动</button>
+              <button data-page-node-id="aTr5lXFZpeQjuwLFSxuv1l" class="btn btn-ghost" data-go="battle" style="flex:1"><!--pnid:QB5rUdTYCQzexqusLSUfUP-->返回战场</button>
+            </div></div>
+          </section>
+
+          <!--pnid:TwbZyu9PIriDmmUM4IDEqK--><!-- ===== LOGISTICS ===== -->
+          <section data-page-node-id="Bezd0dQdci0kM8c31luHuR" class="screen logi" data-screen="logistics">
+            <div data-page-node-id="S6c0MQq7bBJS1kshNtS7zc" class="gtop"><div data-page-node-id="RDXLyp6HYHpOSqYQbDCWSr" class="l1"><span data-page-node-id="TMUg14pSK9lXBXIUa4EECZ" class="turn"><!--pnid:swmmtxG5drasN56m7b5XGs-->后勤 · 补给线</span><span data-page-node-id="lRcdop3q8BxtmP3laPvEzT" class="chip gold" style="font-size:10px"><!--pnid:3kVVnBMkqVh5X3FlrLhSmX-->护城河系统</span></div></div>
+            <div data-page-node-id="YoI2f8SsWqsYGT4O65e62o" class="lp">
+              <div data-page-node-id="y8l9BjEzPUBIzYQxRHSuwB" class="src"><div data-page-node-id="o1i35B7ZXpkHGYaasqCoNT" class="ic"><svg data-page-node-id="jArOTgicEcMo89G2tVGAYH" fill="none" height="18" stroke="#27E0C6" stroke-width="2" viewBox="0 0 24 24" width="18"><rect data-page-node-id="v8eKuri0E9cLQs8Q1p1yo6" height="10" rx="1" width="18" x="3" y="8"/><path data-page-node-id="R7ALWeH8lkgk6BrgjV7RrI" d="M3 8l2-3h14l2 3"/></svg></div><div data-page-node-id="PekgmS34iNBwm0XZJMdhZp"><div data-page-node-id="HwL4TsD2NiCVxUnQJXOWTv" style="font-size:13px; font-weight:600"><!--pnid:nO6hcwl8sIsgYjaZMaPIRt-->本土仓库</div><div data-page-node-id="oqYss4mz3n2UHz9pKBA7JH" class="faint" style="font-size:10.5px; font-family:var(--mono)"><!--pnid:kdZ30KFsuQM0vMVUVZXqnr-->基准补给源 · 运力 ∞</div></div><span data-page-node-id="3KoR8XSThUdDaTDa9tAvl7" class="chip" style="margin-left:auto"><!--pnid:gMaO6Z2hyYWrzJzx1i9EbP-->源头</span></div>
+              <div data-page-node-id="emsNRls18DvsydJbAYKlZf" class="src"><div data-page-node-id="bU94THsBSHRf29GWxISWoP" class="ic"><svg data-page-node-id="Hm90Y1RWfqALtDmjKlZssl" fill="none" height="18" stroke="#3DA9FC" stroke-width="2" viewBox="0 0 24 24" width="18"><path data-page-node-id="1rlfWvkT1aldji69VSQ6kO" d="M4 20V8l8-4 8 4v12"/><path data-page-node-id="alWB9IH6Q5ia4PfobC0mam" d="M9 20v-6h6v6"/></svg></div><div data-page-node-id="X9Ze3sRoeknVPIRMWndJjf"><div data-page-node-id="tpCxXaDZ6ER1MlGYT4ECFr" style="font-size:13px; font-weight:600"><!--pnid:tGZNZkEv92pfcfNoeO3jzo-->前进仓库 B</div><div data-page-node-id="qwY2jl9hvGq9Cefs89jAEw" class="faint" style="font-size:10.5px; font-family:var(--mono)"><!--pnid:S5JBGrAeRFjOjBgCLslL8q-->前线 18 格 · 铁路+卡车</div></div><span data-page-node-id="fmG4V5myGBtmLJLzWW6kdV" class="chip accent" style="margin-left:auto"><!--pnid:MHXpFSfhR0qutTL7LzjDBs-->活跃</span></div>
+              <div data-page-node-id="Ll0SxouJxJKjWsTipX4wQO" class="resbars">
+                <div data-page-node-id="kqAACDayzKzoiG79KZbCAZ" class="resbar"><div data-page-node-id="WNn3T4MTfzFLEYlnJZ0fM1" class="top"><span data-page-node-id="o1Gx260qfmv91NJLk6DN7V"><!--pnid:4C2ZnxeQz57orCOr6yCtT2-->油料 (Oil)</span><b data-page-node-id="Lw59AjSuvLsTyzkKd5l7X7" style="color:var(--gold)"><!--pnid:KaaxIAcUz1UoTX9sZZk3Q7-->78% · 实际/需求</b></div><div data-page-node-id="dgFzyL0v0InKIbaM7kng3T" class="track"><i data-page-node-id="tujGqAuwIyH6iAfr81N8Hr" style="width:78%; background:var(--gold)"></i></div></div>
+                <div data-page-node-id="9YWthwMAiPKFF2uVRCNL8L" class="resbar"><div data-page-node-id="v1ZQRcvjFBwazW1Z6ZuoMx" class="top"><span data-page-node-id="utmOsUVT1ANWszTi7sZUzH"><!--pnid:uILOwC1cEqTGtXB9LpizAk-->弹药 (Ammo)</span><b data-page-node-id="CWNLDJKSkBwlTt6BTiyPyl" style="color:var(--danger)"><!--pnid:ltSOo6ectuhZMEO4baZmnE-->64%</b></div><div data-page-node-id="UmbLizN8Qz98Y0OHO8l7Vl" class="track"><i data-page-node-id="r6XR2tas8msKcwLgGPaP4e" style="width:64%; background:var(--danger)"></i></div></div>
+                <div data-page-node-id="fAxFBkjzujFGPwYxmsoiks" class="resbar"><div data-page-node-id="gq1zxsLk8TdgqvnFrK1EB5" class="top"><span data-page-node-id="09HuXnFLRCjqoYicSRapL4"><!--pnid:rCZufUFpr1RkkobOrKZ3NR-->口粮 (Food)</span><b data-page-node-id="QgDKRg9dSUHlG0Nzrq3N23" style="color:var(--good)"><!--pnid:fi8e1opGchaaa5kfxEdN6q-->91%</b></div><div data-page-node-id="mKFBr4QHNmc0BdVIfIPfdI" class="track"><i data-page-node-id="vTMM80yU8d1XZOrQ32QTCK" style="width:91%; background:var(--good)"></i></div></div>
+              </div>
+              <div data-page-node-id="nnj5QJFM9fMksNTGTSGapN" class="callout"><!--pnid:jEVygy5bJe7lm22sNCNwLW-->⚙ 职业模式：油料/弹药/口粮<b data-page-node-id="8phl0NeSECYCWJ8fxBAvKU"><!--pnid:32lpejP5LJ9Yg50gZK2Sje--> 分离核算</b><!--pnid:2Y7g489rfA25XMfbycyHFG-->，沿补给线指数衰减 R=R₀·e^(−k·线长)。<br data-page-node-id="gWzcMpUnR72B8MzoYdzoJl"><!--pnid:LiuNfRm0b7rPswWLR9iUUf-->娱乐模式固定 R=1（自动满补给）—— 这是硬核与休闲的根本分界。</div>
+            </div>
+          </section>
+
+          <!--pnid:qKu0Mtz19bbz8pzn4uqO6D--><!-- ===== COMMANDER ===== -->
+          <section data-page-node-id="ZAXjNfJxIVgUEyHwzohGYq" class="screen cmd" data-screen="commander">
+            <div data-page-node-id="AW0CWKKy7jijkxZaekug8H" class="gtop"><div data-page-node-id="BzvriOJlSOuXNkwStAonX3" class="l1"><span data-page-node-id="pt0fIUntIvmSGyUVH0bL7S" class="turn"><!--pnid:j7inPrn1cXjXrrxsfEguBl-->指挥官</span><span data-page-node-id="mOfGdL6NaPPQ7KHGlWHE9l" class="muted" style="font-size:11px"><!--pnid:s3Gi6CcuXzUmXU9f5KbUnP-->指挥半径内 +修正</span></div></div>
+            <div data-page-node-id="xMvzvLFRul2Zb9VdIPq3dy" class="chead">
+              <div data-page-node-id="u8KOopX2ch4RnSckV0t63r" class="avatar"><svg data-page-node-id="s0gpbVEqPIeKegU43YL8R3" fill="none" height="30" stroke="#27E0C6" stroke-width="1.8" viewBox="0 0 24 24" width="30"><circle data-page-node-id="3aeqzBsHF20H7PBzXfkrJX" cx="12" cy="8" r="4"/><path data-page-node-id="12xiPyW14nZYa5qXxMipRQ" d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></div>
+              <div data-page-node-id="b3ino2oDgX3SIvo7SDHlzH"><div data-page-node-id="t3I6BuCxj5utVG87TXMNnx" class="cname"><!--pnid:2xfWzLUH9ft9eBf4uFGPZs-->海因茨 · 战术家</div><div data-page-node-id="WuKgzCVq2eVcBIGTodNOih" class="crank"><!--pnid:xH5ZS5zEQ8XodxZ879Oie1-->★ 上将 · 指挥半径 6 格</div></div>
+              <span data-page-node-id="rmt327VWIynLXb8JZGrKEY" class="chip accent" style="margin-left:auto"><!--pnid:A0zjxTMLmw91rmakuKJKTE-->Lv.9</span>
+            </div>
+            <div data-page-node-id="pluhw4Pldt6K0Z417GcBfr" class="skills">
+              <div data-page-node-id="zv5h2aVsDCTmNd9PpLcGws" class="skill"><div data-page-node-id="qoswyoTkFqBi1AZyddOPLx" class="top"><span data-page-node-id="aTGOfdqIuJevuP4fn5MupN"><!--pnid:0evvUSlwtMo1TuNuExQEm6-->进攻技能</span><span data-page-node-id="Mnst18f2LP4s1HHoa76uOe" class="lv"><!--pnid:EoswcG4IoEHfttKRpzlo7j-->+18%</span></div><div data-page-node-id="8AwIJIeY4sMDjiD7Rxun78" class="bar"><i data-page-node-id="xQEIGU4Xv0CnIWYplhmfzo" style="width:90%"></i></div></div>
+              <div data-page-node-id="MYAorNEcVirn4V7vlf1dBQ" class="skill"><div data-page-node-id="m7NdK3rHNZa8g1nMXKMlZ0" class="top"><span data-page-node-id="8Gqy849wvWv5LcIfedRVqB"><!--pnid:ffmDMZ6lZZ2esVMzqZkRz2-->防御技能</span><span data-page-node-id="aOPIn4pHnagwGutu6G3pUx" class="lv"><!--pnid:8Oectgc2k3Zy9g15IBfbjK-->+12%</span></div><div data-page-node-id="DNu5wjzWztSquLnkuCqLsY" class="bar"><i data-page-node-id="iRjyFtZc7heGJdcSmHQzy1" style="width:60%"></i></div></div>
+              <div data-page-node-id="VjDha01IU7upsvFrQvFf5W" class="skill"><div data-page-node-id="SLzOfgQtubW2yiQAMzIyMz" class="top"><span data-page-node-id="6Wn5G0EMTgI0dksG571NKH"><!--pnid:G1iDyG7cJj2maudZSGj9Tz-->后勤技能</span><span data-page-node-id="SWxV73h8nGScaNY1AEmRrd" class="lv"><!--pnid:dB22WAQs0xPP2YBlIr4bIj-->+15%</span></div><div data-page-node-id="0MISYFfZI5E8qAhKQ3KCEG" class="bar"><i data-page-node-id="uAAM7Ld9Kf5RRK4UhdNZDC" style="width:75%"></i></div></div>
+              <div data-page-node-id="wL1fRev6Stbnn43Vr5vW1p" class="skill"><div data-page-node-id="J5dquXdFUPHXg5hgzQLEDO" class="top"><span data-page-node-id="B7lCEKmHnoxP96JpsZFLur"><!--pnid:2UjV4MATI4DHHlySZF29Sl-->特性 · 闪电战</span><span data-page-node-id="T6YFdxygHeGklyJoA7FkNL" class="lv"><!--pnid:64kS3nnkZzTcDQ2R5vPY1H-->摩托化 +20%</span></div><div data-page-node-id="3UEiCNoOQb2YXv6UQui2vt" class="bar"><i data-page-node-id="D6tM8klcncTYOGPmg7Bzzl" style="width:84%; background:linear-gradient(90deg,var(--gold),#d9952f)"></i></div></div>
+            </div>
+            <div data-page-node-id="cjK6mTIsdAT8BQzqYbhrdZ" class="assigned">
+              <div data-page-node-id="H6EYbzs0WZX4lUUOXO4BI8" class="li"><span data-page-node-id="vvZTyf84yZFAfNLZRS0gWO" class="mini"><!--pnid:ZV8WgPdwbtNXyOHtar1maj-->装</span><!--pnid:obeyxJHVHcAAj1KIawtDjg-->第 4 装甲师<span data-page-node-id="TZyt5B2GpUXZiSqdMWbyry" class="muted" style="margin-left:auto; font-size:11px"><!--pnid:2VIGAkb3cjdqEI8HueGuNm-->半径内 · 生效</span></div>
+              <div data-page-node-id="e2YoYZucUng2ZskpFYvxco" class="li"><span data-page-node-id="BcWnhTYV2HRJBIuhkFQoCZ" class="mini"><!--pnid:gmNW0Nudmtjciap8nT2rF9-->机</span><!--pnid:hXeAziZxSb6axoekyRElSd-->第 10 机械化师<span data-page-node-id="kCLKEwffIGlUDkGtt0Vp5q" class="muted" style="margin-left:auto; font-size:11px"><!--pnid:u2ezDf5M9dmvD75Ae4Nqva-->半径内 · 生效</span></div>
+              <div data-page-node-id="f7TD6xlNFQe9kEjBKxrQJT" class="li"><span data-page-node-id="MzxsNecyWtiQfIgszOzglL" class="mini"><!--pnid:0MHV1iSlhXxWSNLlxnJFUV-->炮</span><!--pnid:iATaz3ZQDHeZaC89Rj3zaf-->第 2 炮兵群<span data-page-node-id="tGYEQ4ruXoMliiiX5gXsJs" class="muted" style="margin-left:auto; font-size:11px"><!--pnid:ZIbh3XfUgAFXqTzwLmH1rB-->配属 · 生效</span></div>
+            </div>
+            <div data-page-node-id="fYueyakvIONbLMcIdbO2qi" class="pad" style="padding-top:6px"><button data-page-node-id="iLFF30tHUE6RZ8a5eZMHtw" class="btn btn-ghost"><!--pnid:BrurgwTZ616LL6yAfBaX3o-->任命 / 调动</button></div>
+          </section>
+
+          <!--pnid:G5VbTyhLn9QwWTjOgic29u--><!-- ===== REPORT ===== -->
+          <section data-page-node-id="k0yJ5cWLJ6QbSreqJLplSC" class="screen report" data-screen="report">
+            <div data-page-node-id="kWQZ5WWxOEZ0mZpvTyskmp" class="statusbar"><span data-page-node-id="wCCN1yZQp6i4al4l8Ywb0K"><!--pnid:b3kb6Keuj1iwzqguZi9JNm-->19:24</span><span data-page-node-id="LDGaEdRvaWVzQnCkEUi4Wy" class="right"><span data-page-node-id="Ixv6BI9FL8eglaDYMezkGO"><!--pnid:orinN3dbNqQ7wJ2ExIAoKd-->✓ 已存档</span></span></div>
+            <div data-page-node-id="EYjsYmHlwvy4t8Wf3wTBCU" class="banner">
+              <div data-page-node-id="flmziJnaJGwWwVTmIfuHC3" class="res-big"><!--pnid:cTqfyOjQOHUgvWrndJlGhZ-->战 术 成 功</div>
+              <div data-page-node-id="z4llPJnfCRPbcvFKwPNfzW" class="res-sub"><!--pnid:red0jyEAZOHC4Z8fr2pyGk-->二战 · 东线 / 第 12 回合结束 · 巴巴罗萨行动</div>
+            </div>
+            <div data-page-node-id="HAIRLV7NdPwfv1edPyVmaJ" class="metrics">
+              <div data-page-node-id="GwxgmCbqBy5ouc9FyKtdW8" class="m"><div data-page-node-id="Bx1bKHeGeIKntK4tWoiisX" class="v" style="color:var(--danger)"><!--pnid:SCPwL95OhvcHcBw41tcdaZ-->−248</div><div data-page-node-id="1WqhBN5rpEDfaklWYTVV4B" class="k"><!--pnid:ktWl5UT2grxccpJPOMyiP0-->歼敌单位</div></div>
+              <div data-page-node-id="lBPZwuXLzsXZ3TyavyvwYO" class="m"><div data-page-node-id="wohaVfVG8TsoOCmisFSNdx" class="v" style="color:var(--good)"><!--pnid:UEd2J7TeDSOpPim7a5s7HD-->−137</div><div data-page-node-id="OwzDTEqtSHAOv3nqYgKcYy" class="k"><!--pnid:gIyyKOsTkrZZ2EckCPgHjd-->自身损失</div></div>
+              <div data-page-node-id="9fAkXUkheKtPyhI0UbJf8W" class="m"><div data-page-node-id="pBXA52EujaayVeArHhooUd" class="v" style="color:var(--accent)"><!--pnid:K10Z7L4ULyJTV0P6iga4mN-->1.8:1</div><div data-page-node-id="0oOwZK9RESio0GGptuATHU" class="k"><!--pnid:rIWAdbYFZdvh5sEHDLPzc4-->交换比</div></div>
+              <div data-page-node-id="lwl0pUPi4ueOcrf6eLujQr" class="m"><div data-page-node-id="NkWxYy6fxTDxEJcSEL4nfU" class="v" style="color:var(--gold)"><!--pnid:8VQiUzrFML8gwUzi7Sub9I-->63%</div><div data-page-node-id="a70TfAHOMMSUjb3O4O6XVi" class="k"><!--pnid:Gfw3AFRURq6Uh08OIS1hOb-->控制领土</div></div>
+            </div>
+            <div data-page-node-id="MPY0KgUiscixX80yfloeTY" class="timeline">
+              <div data-page-node-id="QNfRNfzTTH6Kb6AuFQKjzN" class="tl">
+                <div data-page-node-id="U30xqZdcrPxiHpouMlTDW2" class="ev"><!--pnid:SSCQi3epuBwT3OFy8VscvA-->补给阶段：前进仓库 B 补给率 76%，钳形合围就绪</div>
+                <div data-page-node-id="toMJ49ZjHAUq6ZbAdnBvT7" class="ev"><!--pnid:EJVBOzcQh8FHEJ0VpMy05w-->机动阶段：第 4 装甲师突进 18 格，切断敌军撤退路线</div>
+                <div data-page-node-id="dSYNU0odIWMXnqIplXOjvo" class="ev"><!--pnid:AwIjTA7TSqvEq4BfRdiUXz-->战斗阶段：包围加成触发，敌军败方损耗 +45%</div>
+                <div data-page-node-id="wuTl3VX4KXxJ7M2FVtS2uF" class="ev"><!--pnid:diGYGCe6ylZrUiRkqeWEez-->结论：达成战术突破，推进战线至第聂伯河一线</div>
+              </div>
+            </div>
+            <div data-page-node-id="NSyrovwjetPGWEEYpZWcVf" class="pad"><div data-page-node-id="LoT1xRhC2SeupRZ58IKPUB" class="row" style="gap:10px">
+              <button data-page-node-id="EB58pL50wjNblUAOB3vm67" class="btn btn-ghost" data-go="battle" style="flex:1"><!--pnid:YcRe3WWvq7vqEl0RN2Tlq4-->继续推演</button>
+              <button data-page-node-id="2qBc32mnfryvTpcXwv8DHu" class="btn btn-primary" data-go="lobby" style="flex:1"><!--pnid:oI8f64t4Sj4WiqW4nk823Y-->返回大厅</button>
+            </div></div>
+          </section>
+
+          <!--pnid:tBCpNHjsJEgaKICw9SUvvn--><!-- ===== ANALYSIS ===== -->
+          <section data-page-node-id="47vuHcICSkqNfdtYR5wek3" class="screen analysis" data-screen="analysis">
+            <div data-page-node-id="k2nBd3MvkgoyboJjdSFZ0c" class="statusbar"><span data-page-node-id="tw7KIips138hDKxutKppOY"><!--pnid:bwR3n8NBZWyo73qVdz0efg-->19:24</span><span data-page-node-id="f436Tj9uMFuoGSM13FJIoX" class="right"><span data-page-node-id="105FAJKbolpo6b6Nwjik8R"><!--pnid:ZenCdJJsZokvVXQWRsZaQY-->战报分析</span></span></div>
+            <div data-page-node-id="Fmq4VMRxrKy3ivGOEveX7R" class="pad" style="padding-bottom:6px">
+              <div data-page-node-id="h0s3WcHsedrbHwaQv8fqJh" class="between"><div data-page-node-id="Worqp8e1tB8IE8Z08VOKDA"><div data-page-node-id="lXgZdLX1kKrrJIlSXtpbr5" class="tagline"><!--pnid:kvGxJKWZ2u8YQKGWBE0jPK-->Battle Report</div><h2 data-page-node-id="ovTEEUWNLq96psD4tthsUR" class="t" style="font-size:18px"><!--pnid:u1yhRskJ8UaRFV9uIH9k25-->战报分析卡片</h2></div><span data-page-node-id="2myHsHibgH1epAwtA2750z" class="chip accent"><!--pnid:Zwd7ic3xBumrFxQFalARsl-->可分享</span></div>
+            </div>
+            <div data-page-node-id="Q2joElBvMLBz3KH0kf1mtH" class="acard">
+              <div data-page-node-id="UfXSjDUYnBu5fZ4FRIXYjV" class="ahead">
+                <div data-page-node-id="0hj829eyj1ci5KqZTQYRyX">
+                  <div data-page-node-id="BRa6uKgiIbd8IFUFyW84mz" class="res"><!--pnid:K8Xrk0PulUjHQGCCgz97Qd-->战术成功 · 东线</div>
+                  <div data-page-node-id="vW8SOXPEjo553pp5BOS1xM" class="sub"><!--pnid:7QQmrCQIb6BsZKcs7jdobA-->二战东线 / 巴巴罗萨行动 / 第 12 回合</div>
+                </div>
+                <div data-page-node-id="2iDsDgCKCAjxPcT448MTuu" class="qr"><svg data-page-node-id="NQOOos5Qu9fXvTTnF8VncE" fill="none" height="22" stroke="#27E0C6" stroke-width="1.6" viewBox="0 0 24 24" width="22"><rect data-page-node-id="q8vkMYbZqqU9OXgTuIz4sB" height="7" rx="1" width="7" x="3" y="3"/><rect data-page-node-id="PyskyfeOEiLSDn3iBTDiWb" height="7" rx="1" width="7" x="14" y="3"/><rect data-page-node-id="nNQWwjSHITsmeMQp5ljKVj" height="7" rx="1" width="7" x="3" y="14"/><path data-page-node-id="PYRP70Tb8XCT2SVHhQ0yoc" d="M14 14h3v3M21 14v7h-7v-3"/></svg></div>
+              </div>
+              <div data-page-node-id="xXfcwYB215xpec2Vr1Mf6c" class="abody">
+                <div data-page-node-id="ZxvA4IHcP8en1T4MvawbHs" class="ametrics">
+                  <div data-page-node-id="h9iD7G1QriEW7BjInffjES" class="m"><div data-page-node-id="C89rsMKCnJmx8yoDM8rUj9" class="v" style="color:var(--accent)"><!--pnid:1z9PbP7Ux8g42A59I7d4zc-->1.8:1</div><div data-page-node-id="ZTlQYq31XbDKU5cVDhBpEd" class="k"><!--pnid:VFmVB1TLzSRSE1Qdago8ET-->交换比</div></div>
+                  <div data-page-node-id="Uuqr8nA6FSumI3wEM1Ziex" class="m"><div data-page-node-id="NeuuzlIOLWgyan6VoGkOO0" class="v" style="color:var(--gold)"><!--pnid:tMLumGuq2ZiOwFvdZuoerg-->63%</div><div data-page-node-id="TU8P1Ne90ZTf7MHWl8USKo" class="k"><!--pnid:iIapmqSxbQ9DYwyZFtHqOQ-->控制领土</div></div>
+                  <div data-page-node-id="FsOYFeMphyRwsLQBQsxPp0" class="m"><div data-page-node-id="pCXzDJUdCNUtR2aCFNE7MZ" class="v" style="color:var(--good)"><!--pnid:8yi6Q5NA2xtoMpAyZM9nWP-->A+</div><div data-page-node-id="aCtnU1jy6NOeH8zpDAT1jq" class="k"><!--pnid:xD91ovDF9ALF26XOmUP51f-->综合评级</div></div>
+                </div>
+                <div data-page-node-id="ngf4uqXKgICfZKCBpJ9jUJ" class="achart">
+                  <div data-page-node-id="wuNa0lMOShKq3Ps17Aa4fu" class="ct"><!--pnid:ZPUuwKP0EsfCSHHTOvq3di-->各兵种战果 · 歼敌(青) vs 自损(红)</div>
+                  <div data-page-node-id="SLpXLBiNBGiFRDtvfg1pBg" class="bars">
+                    <div data-page-node-id="VJQYG1a79N6Kh552kxZKxY" class="col"><div data-page-node-id="og7qHnAl1cBc2LG4mrfcIM" class="pair"><div data-page-node-id="v5teTCeN95OrKz47rRoqRX" class="bar f" style="height:92px"><span data-page-node-id="6HMeJczG4SOp3xStJqBcT8" class="vl"><!--pnid:XagzTqcggyYAEFF27OwyGa-->90</span></div><div data-page-node-id="iE32iaogUqyahk8vrNwrKE" class="bar e" style="height:42px"><span data-page-node-id="dhQzlyoeh7esScVzchDGZz" class="vl"><!--pnid:ALF57x3kCR9pJfqVY3sR3v-->40</span></div></div><div data-page-node-id="c8QtAjYTGneo7fjTtApykF" class="lab"><!--pnid:rbq27iI44tXWlD1iNeG5iw-->装甲</div></div>
+                    <div data-page-node-id="tV7TqPQRaX9D8VEv5M65z1" class="col"><div data-page-node-id="jJeL4Kn5m2RaTH5pAMgKSM" class="pair"><div data-page-node-id="tpcSQ0EMwK5WKcVmGQZX16" class="bar f" style="height:72px"><span data-page-node-id="KzfHtA5B4rKTp8nORAkDjo" class="vl"><!--pnid:gcleRmytKmnvLMlPD5VRdS-->70</span></div><div data-page-node-id="jQF5XdcBXP6J32XH7I5GPN" class="bar e" style="height:62px"><span data-page-node-id="LH4obK5p4mNA9KbTyJMVe3" class="vl"><!--pnid:iyvuZZe6HMAKbjtHPncfCf-->60</span></div></div><div data-page-node-id="z8SEAjYIC1CJNL3nirHU0p" class="lab"><!--pnid:IqphmnP3awigmN0p78H6z5-->步兵</div></div>
+                    <div data-page-node-id="tQK6q5dZ9Kgr00VecpfJIf" class="col"><div data-page-node-id="iM9h0RxHDjPiw4UKcvqnVj" class="pair"><div data-page-node-id="yaACO76YDobX3qRkEbn985" class="bar f" style="height:42px"><span data-page-node-id="h7d9bJRkA1lfKRR5vO00XU" class="vl"><!--pnid:T3CtVFFLUDloULhZpVETwl-->40</span></div><div data-page-node-id="tFRRVd2SGlEbU7fO6C0Mpv" class="bar e" style="height:22px"><span data-page-node-id="YBw1Q1rURXzhGs65SsRiXA" class="vl"><!--pnid:APmZqc5hmssAHZxgp5FxFQ-->20</span></div></div><div data-page-node-id="nbYAQbcBL7Vem2Sgu1etlF" class="lab"><!--pnid:2lTpptPd3eFCNgIhqyeom6-->炮兵</div></div>
+                    <div data-page-node-id="9jJXvNGKQExosuuppHr8kC" class="col"><div data-page-node-id="HlZ4mvSddUo5qkYkXi8qbI" class="pair"><div data-page-node-id="S6rjld68B73Ye4XVEl8kHr" class="bar f" style="height:50px"><span data-page-node-id="BlaCh0NYyhzanflO1P8kxb" class="vl"><!--pnid:1cZQ8FVZgNWittvXaB0ge7-->48</span></div><div data-page-node-id="cSujRD9gimC0PhztpKBjEO" class="bar e" style="height:18px"><span data-page-node-id="GB3CLJ14zgC7FA5jDnlcGN" class="vl"><!--pnid:WCd1YVn3TRcJDViT4VSEKC-->17</span></div></div><div data-page-node-id="wsPWTHMqs8LwFwc5K5FmIA" class="lab"><!--pnid:2oK5qhPBwhkrCzXDTxoPwr-->机动</div></div>
+                  </div>
+                  <div data-page-node-id="GvRbGhrblzUPawUZRHr5hs" class="aleg"><div data-page-node-id="DCobZ4TS8lxIrSLYqBLo3f" class="lg"><span data-page-node-id="Cyth7cmCtfoqeuDqRiqMrs" class="sw" style="background:var(--accent)"></span><!--pnid:hb97wcrdy1lj8pCipDptQs-->歼敌单位</div><div data-page-node-id="5gW5kOKBw11uyfi2kLhUaV" class="lg"><span data-page-node-id="DvkC9hY8UJc297ocd5FqOD" class="sw" style="background:var(--danger)"></span><!--pnid:qbmTgJWQkYXSO6IiGEro6v-->自身损失</div></div>
+                </div>
+                <div data-page-node-id="f47wcLRAhz0jbFm4DwoQJX" style="height:1px; background:var(--border-soft); margin:16px 0 4px"></div>
+                <div data-page-node-id="C1Q2xM0zloADGuVMIvYSHz" class="astat"><span data-page-node-id="b14DZkrjstHjkkZUFyCaVP" class="k"><!--pnid:l4akjKbbsnJjlhLfM809qp-->补给效率</span><span data-page-node-id="kWuQ5jPe8EgGJa5uD5Mbbm" class="v a"><!--pnid:R0vqnahtvkmK23F07cbrXk-->76%</span></div>
+                <div data-page-node-id="XzYDJD6xGSy8RrdL8i6L7u" class="astat"><span data-page-node-id="kpCJyYXDqdbyflT1d1QiZX" class="k"><!--pnid:N0veCdbUv0pSaANPdSuyFE-->钳形合围加成</span><span data-page-node-id="UOoDETNpRUiruqs9c90OWk" class="v g"><!--pnid:a995Kz5uuArehrPzISjytS-->已触发</span></div>
+                <div data-page-node-id="493nlcdJ1rmkn20rumrz4h" class="astat"><span data-page-node-id="MgqBtGPbZucN73L8Zgdye3" class="k"><!--pnid:FIt2qzm6MIk78qZccnijyN-->指挥官贡献</span><span data-page-node-id="iUsib1ZrEyRnlZBaGiQkG3" class="v"><!--pnid:UQYTVfoBCebaoIpBU7YPdm-->+18% 攻防</span></div>
+                <div data-page-node-id="LE0LOAOKA3Q7VM3HCG7IK5" class="astat"><span data-page-node-id="SXKzx2kds9kuucuOPdWBwn" class="k"><!--pnid:uEFujdFyAmRSaIERsmDAQt-->关键决策点</span><span data-page-node-id="vsMUMIP6eIciboNB6D7U7b" class="v"><!--pnid:Ieny2lb1X0wVBd0uyw0QUd-->切断第聂伯河退路</span></div>
+              </div>
+            </div>
+            <div data-page-node-id="jzbvoJUTLpxY6dkvBk0ZwY" class="ashare">
+              <button data-page-node-id="lcQfQwqdSI00RD3ymI6fdp" class="btn btn-ghost" style="flex:1"><!--pnid:m8pL4BYlBVnd3VCC82O0tf-->保存图片</button>
+              <button data-page-node-id="C65bnRkdz867WQxzI9d8os" class="btn btn-primary" id="anShare" style="flex:1"><!--pnid:EfOgfxRVMhfVKO8gTtMEUe-->分享战报</button>
+            </div>
+          </section>
+
+          <!--pnid:ZDlAzWGIyvolP5xkrMoue7--><!-- ===== STORE ===== -->
+          <section data-page-node-id="3QZ3c1dB1b2fLQPi9mTN6s" class="screen" data-screen="store">
+            <div data-page-node-id="4RUU2lVMT8RaHocMXHl9RS" class="statusbar"><span data-page-node-id="f4r7BxrSoPrZ4EzNMIRLP3"><!--pnid:VpJ1IQfxMXkLJhKLTmbPYY-->19:24</span><span data-page-node-id="pWKWMyCtLh6L02xN0cPyIs" class="right"><span data-page-node-id="IvZZnLpuWpY4qx4qTFxeq7"><!--pnid:mDUOhAxxRi11cLHYo46jJO-->💎 1280</span></span></div>
+            <div data-page-node-id="vdaoM7zs3t2wtbuK6HDITo" class="pad" style="padding-bottom:6px">
+              <div data-page-node-id="pzHg9usfgTQfy4lDA8hOUG" class="between"><div data-page-node-id="69fLDlynxlgGtBUNWXlq1r"><div data-page-node-id="6c9yqIkVWz6ywUS6iFMVDm" class="tagline"><!--pnid:xPUEaEHceDvvLtPqj86XSz-->Store</div><h2 data-page-node-id="0auWB0xPyelXuoJlTsKOlo" class="t" style="font-size:18px"><!--pnid:uPTY64Laub6AzrlwokqDXC-->军需商店</h2></div><span data-page-node-id="xAHPcOVvuzIFE84HfWGeQu" class="chip gold"><!--pnid:lK8D24Eoe8O04k73ioJbxv-->💎 1280</span></div>
+            </div>
+            <div data-page-node-id="DniSYcq6icTBDWLxlRs24e" class="tabhost">
+              <div data-page-node-id="bNN29TdacVhetCb8m06VUz" class="tabs"><div data-page-node-id="7OZzDQiqsA39Z40qbxZslp" class="tab on" data-pane="副本"><!--pnid:NYVxPVvfjpx6fCPooNtSFL-->副本解锁</div><div data-page-node-id="K2efw2HyDbf1IfdLEAQD31" class="tab" data-pane="外观"><!--pnid:izdBK1ZDdIcRzvnOjAzNr0-->外观涂装</div></div>
+              <div data-page-node-id="DJIOtdvQMquPe1GPMuR6M1" class="pad" style="padding-top:8px">
+                <div data-page-node-id="xoeLi1LQNOlHBvvDrdMlEM" class="tab-pane on" data-pane="副本">
+                  <div data-page-node-id="okOycQAYSKudDErEW35rD8" class="shop-item"><div data-page-node-id="Yq0aspXukdGpS3BF3gnb65" class="ic"><svg data-page-node-id="CUDMtTfqo8vjl0stVfRUpw" fill="none" height="20" stroke="#27E0C6" stroke-width="2" viewBox="0 0 24 24" width="20"><path data-page-node-id="lUqy8iAZduzlcJtwvrOzYJ" d="M4 4h16v16H4z"/><path data-page-node-id="nAph8XOoX3DpSoDffkpFj9" d="M4 9h16M9 4v16"/></svg></div><div data-page-node-id="DIe8l8JY01Kj1Q5xUiS1xP" style="flex:1"><div data-page-node-id="3FLq9Usl2scVWaU5Oi9XG3" class="nm"><!--pnid:BX6xo52x2mDlN7na2VzWm8-->二战 · 西线</div><div data-page-node-id="N0qxmw197JgXhZ48m2eJQn" class="ds"><!--pnid:3iTTDu3F7zQtHRZmXnnv88-->1944 诺曼底 · 低敏感</div></div><span data-page-node-id="VjJkJ3qSJmJotDSTvYaO1I" style="color:var(--gold); font-weight:700; font-family:var(--mono)"><!--pnid:gh1JVQiYOPNcsDq1ZdXP9q-->¥38</span></div>
+                  <div data-page-node-id="52pw4maq0Oms4YV25hbieh" class="shop-item"><div data-page-node-id="Tkk6rD3mL7P7pMnr2H3lf6" class="ic"><svg data-page-node-id="Fez5KEnY2oL0e1wdMcsoLX" fill="none" height="20" stroke="#27E0C6" stroke-width="2" viewBox="0 0 24 24" width="20"><path data-page-node-id="OgfSZLsDTzGmvYHbw8Thpz" d="M4 4h16v16H4z"/><path data-page-node-id="VjTAE9GdZY1XNsPDD7lCWf" d="M4 9h16M9 4v16"/></svg></div><div data-page-node-id="SgBkibs4ltBUzTwQm4cT1Z" style="flex:1"><div data-page-node-id="fiQCIvQTbV8LTAorzd32ps" class="nm"><!--pnid:t2smPRGBzU46710kpdai8u-->一战 · 欧洲</div><div data-page-node-id="2sxVwDHAgkIjN2gGKAItQ8" class="ds"><!--pnid:q8F0J4OPK1hcjsBD4qcYZ9-->1916 凡尔登 · 低敏感</div></div><span data-page-node-id="Y3Jz39nTB34rCUit8WZh5o" style="color:var(--gold); font-weight:700; font-family:var(--mono)"><!--pnid:vkL9UJLLnPQwSpsqfOqMC0-->¥30</span></div>
+                  <div data-page-node-id="cxHu3eShz3H0GZaflo4frC" class="shop-item"><div data-page-node-id="WqdeSqYXm90kUuhHqG3eF1" class="ic"><svg data-page-node-id="vThFGA7H9MQ4cro5ZrTRUu" fill="none" height="20" stroke="#FF5A65" stroke-width="2" viewBox="0 0 24 24" width="20"><path data-page-node-id="F5V7boLo7aBJjYzjDdnmr6" d="M4 4h16v16H4z"/><path data-page-node-id="0UUZoAcLHXqBo04nmQKC22" d="M4 9h16M9 4v16"/></svg></div><div data-page-node-id="q3JvYQffApOolX0SXPcPYt" style="flex:1"><div data-page-node-id="J40um58txVWEPYLEzbGmYD" class="nm"><!--pnid:X9nJHpZeuMnKlo5DVIwXIq-->抗战</div><div data-page-node-id="MPatXBOlzAYj6I9Bt1dhLQ" class="ds"><!--pnid:wdidHtm3jSpCyfaPckJHMl-->高敏感 · 合规评估中</div></div><span data-page-node-id="V4HWhRVrboVU8nKd3M62wc" class="chip danger"><!--pnid:owHEKnuEiw4H0E5aTA3PFK-->🔒 未开放</span></div>
+                  <div data-page-node-id="LkPycYDKLWRqBIzGQNLzpi" class="shop-item"><div data-page-node-id="19vYupiuNUFPGRo52GQiXd" class="ic"><svg data-page-node-id="MjHg9CgrNv3SFc4A3wDBWt" fill="none" height="20" stroke="#FF5A65" stroke-width="2" viewBox="0 0 24 24" width="20"><path data-page-node-id="trm83zpnxkKXVA2uhjyzr6" d="M4 4h16v16H4z"/><path data-page-node-id="6lVkHTVCNwoHT9Fp270Ejw" d="M4 9h16M9 4v16"/></svg></div><div data-page-node-id="6g3Rx2iIJopneGdAoRNgM5" style="flex:1"><div data-page-node-id="D66ndqZF7r3WRlqvy9CxD5" class="nm"><!--pnid:KfXSSql85LOW9jZAEVg85q-->解放战争</div><div data-page-node-id="AI5vBhnovI3bjkAZ2mERZL" class="ds"><!--pnid:6M94eRZwNq5nRMt7Khu7ZL-->高敏感 · 合规评估中</div></div><span data-page-node-id="78F9edYlRfZCV197Fe9ZPT" class="chip danger"><!--pnid:HhPCRgabtfknKHMSqYHrFt-->🔒 未开放</span></div>
+                  <div data-page-node-id="aEAejXgIDBybKbr5Q5ymSh" class="shop-item"><div data-page-node-id="cFRHBRoinqURq6VsNO9zTS" class="ic"><svg data-page-node-id="Ya9PF7PWbBE7nlZC7qoSdV" fill="none" height="20" stroke="#FF5A65" stroke-width="2" viewBox="0 0 24 24" width="20"><path data-page-node-id="h8lyIgmt4e7sjbfUP97zYS" d="M4 4h16v16H4z"/><path data-page-node-id="6wN3jX7yO7wAIqg5CWGTy8" d="M4 9h16M9 4v16"/></svg></div><div data-page-node-id="4bLfFksMOovQYgGLAeEYPf" style="flex:1"><div data-page-node-id="zy7pEH8Y6lWSzQufHJeWGp" class="nm"><!--pnid:knCppklBqglvfcMQIIwjgI-->抗美援朝</div><div data-page-node-id="qD3Xlv6mIeqD8SPuMmJIiG" class="ds"><!--pnid:BT7baUEG0iQLUww6IyuEC1-->双重敏感 · 合规评估中</div></div><span data-page-node-id="bnhGNUYIMTzxm7V6aTJab0" class="chip danger"><!--pnid:6SK423nuzuspNlzi0gcGgG-->🔒 未开放</span></div>
+                </div>
+                <div data-page-node-id="GY54AJES5YDKvwBXaSQOWw" class="tab-pane" data-pane="外观">
+                  <div data-page-node-id="k176tPh8iHuj8ZBq3pxVZg" class="shop-item"><div data-page-node-id="UbflfCp6bN47tl6Ekm9Bob" class="ic"><svg data-page-node-id="DRO6GzDBMVmK34jy07Ck2k" fill="none" height="20" stroke="#F5B545" stroke-width="2" viewBox="0 0 24 24" width="20"><circle data-page-node-id="HPRnSQ5gibFQkJLc0hXySG" cx="12" cy="8" r="4"/><path data-page-node-id="dAhumQLnGOezKycYJiwdkF" d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></div><div data-page-node-id="C3LxOcT4fBqo3W0q9Z9tjE" style="flex:1"><div data-page-node-id="rG8wxFAd8XQa1bK5GBzZN6" class="nm"><!--pnid:BxzwYmJl0P1BAVu51oq9SZ-->指挥官涂装「铁十字」</div><div data-page-node-id="OzemQu3qyIhN6AaibKpRmY" class="ds"><!--pnid:lDhZHLOLHPJf54ptzy97cD-->纯外观 · 不影响数值</div></div><span data-page-node-id="qAp7HuQZfUE8YEMB2SRyfh" style="color:var(--gold); font-weight:700; font-family:var(--mono)"><!--pnid:ObAgtOGmg7TWG71Ycuo9py-->¥12</span></div>
+                  <div data-page-node-id="6RY3uSExlLoJXegFEl3wbG" class="shop-item"><div data-page-node-id="L34q7w9mbDzcGhFVrxTTvd" class="ic"><svg data-page-node-id="rYxQNvSbFK02FcD7cbOPjZ" fill="none" height="20" stroke="#F5B545" stroke-width="2" viewBox="0 0 24 24" width="20"><polygon data-page-node-id="dTnr7ssEEIXrn37yHKiTIE" points="12,3 20,7.5 20,16.5 12,21 4,16.5 4,7.5"/></svg></div><div data-page-node-id="B5B1IndNRF243H7gZBYrkZ" style="flex:1"><div data-page-node-id="8QI1TjwUmwTJNrRqzu6Lft" class="nm"><!--pnid:NszKCEZmYAglcR0oUzA2dh-->单位迷彩「雪地」</div><div data-page-node-id="bKgo9ZG9RI6fV39VdoxUTl" class="ds"><!--pnid:hMtqWH6GjLotEUxWojVo6o-->纯外观 · 不影响数值</div></div><span data-page-node-id="3pZ1xLdeRUBFfgu3AsKOio" style="color:var(--gold); font-weight:700; font-family:var(--mono)"><!--pnid:afLfPybMfE9TaNAsAyRObC-->¥8</span></div>
+                  <div data-page-node-id="rm9AfrMTYu5hte6Xz6hEpl" class="shop-item"><div data-page-node-id="3POupAeSvFvQG2Ja5vIpF9" class="ic"><svg data-page-node-id="wNPWRy40IJ5a6rz1r6fkug" fill="none" height="20" stroke="#F5B545" stroke-width="2" viewBox="0 0 24 24" width="20"><rect data-page-node-id="i6oe1lamUmQoWs50TcrDIB" height="14" rx="2" width="18" x="3" y="4"/></svg></div><div data-page-node-id="CX7fxDxnU1mFqlbnlsUoq2" style="flex:1"><div data-page-node-id="zVWBF3JDvgJYXnJZbPD1A0" class="nm"><!--pnid:raraKiCkoVNm5gvQ8cWLsb-->战场主题「午夜蓝」</div><div data-page-node-id="miM7ENvqkimyEC69FRKyw2" class="ds"><!--pnid:45rQrwULcHTDNDdy02sl1e-->已使用</div></div><span data-page-node-id="1K9c1en0LkXgp31szTuxL3" class="chip" style="color:var(--good)"><!--pnid:zEvpApDlCFWH2TuJxkgmcF-->✓ 已购</span></div>
+                </div>
+              </div>
+            </div>
+            <div data-page-node-id="QfouDTojOLdG9JqITUMGuO" class="fair" style="margin:8px 16px 18px"><!--pnid:Ovs7ITwlKwN1XP8CYJYMof-->⚖ 公平底线：内购仅含「副本解锁」与「外观涂装」，<b data-page-node-id="eA9hYJdNv8ZUCnoUS0mzIm"><!--pnid:MNuuEuT4MzXmRyIhQGQp2N-->绝不出售战斗数值</b><!--pnid:9SNkvXMRN8sn8yn8TlwtSr-->，禁止 pay-to-win。高敏感副本合规评估通过前不开放售卖。</div>
+          </section>
+
+          <!--pnid:4UrRM1mY410OhxT84PUbSp--><!-- ===== GUILD ===== -->
+          <section data-page-node-id="NMgdsACgsQFXtqrHLnSYLD" class="screen" data-screen="guild">
+            <div data-page-node-id="LKxRSsP5kUP9skK9PODeA8" class="statusbar"><span data-page-node-id="eGELQxdwA6lAjZDyQFVRbn"><!--pnid:Jye82didp2okWPtyHnISc4-->19:24</span><span data-page-node-id="xODGjU6L8tHw5VNSnEJNIp" class="right"><span data-page-node-id="qVv9xUqotiXcRXvIw3Qczw"><!--pnid:t7YNt8UBwaOoIa9GtDhfc9-->钢幕军团</span></span></div>
+            <div data-page-node-id="zqIs2eGXUAOTsKYUm0R4W9" class="guild-head">
+              <div data-page-node-id="qMuctwunAf82Rg4XNvTeMR" class="gn"><!--pnid:euvdCp1c2jef7uu2XknqSH-->钢幕军团</div>
+              <div data-page-node-id="KMkBEAFIC629RoktW3s2L9" class="gm"><!--pnid:6HB3C1rRxmgJwRdmKvO8V9-->Lv.12 · 128 名成员 · 战力 4.2M · 全服排名 #37</div>
+              <div data-page-node-id="B9FuVNEWdGp1r3nMmEKp8w" class="row" style="margin-top:13px; gap:9px">
+                <button data-page-node-id="NhunN8qsRmacmuxD0iQbej" class="btn btn-primary" style="flex:1; padding:9px; font-size:13px"><!--pnid:xQSHWv3f2pCzMvI69t64XU-->招募成员</button>
+                <button data-page-node-id="0aGBthcG31u69qOMCLHBQ8" class="btn btn-ghost" style="flex:1; padding:9px; font-size:13px"><!--pnid:a2k5VsAMHNw6Esv07n6EA4-->军团管理</button>
+              </div>
+            </div>
+            <div data-page-node-id="I880ihONwHceBRxSItweNa" class="pad">
+              <div data-page-node-id="KIZFClEf2xEQ0cLELoZrUs" class="between" style="margin-bottom:6px"><h3 data-page-node-id="YqebZDCPP28ueedB3XwaBW" class="t" style="font-size:14px"><!--pnid:zYGDqr6URQq1J8lDLU6bcO-->成员 (128)</h3><span data-page-node-id="5ASNKPzqjibRrgdNLN302D" class="chip"><!--pnid:YLxBTb6LQ8BhnToAilcnbJ-->在线 34</span></div>
+              <div data-page-node-id="PdC5cFDeoNBvd1wGBJ9nZc" class="list-row"><span data-page-node-id="AqkQnPWB2yGx5AlA26Szgl" class="ava"><!--pnid:K2CQQdfJsi3ibbWVHoJzsa-->团</span><div data-page-node-id="4CbQgKuu1XdmYQKxatj1EG" style="flex:1"><div data-page-node-id="w4FBiqxA3CSSYHRgQ5G11D" style="font-size:13px; font-weight:600"><!--pnid:dWO2a9E7yH3JwX0Upa9hqG-->战车指挥官</div><div data-page-node-id="kdMq1Rx3aYDIPHrJ3iVE5Q" class="faint" style="font-size:10.5px; font-family:var(--mono)"><!--pnid:DfYUQlbvBXIz9b0VNoBpAS-->团长 · 贡献 9820</div></div><span data-page-node-id="zUxzD1PRmqjHUg5sZNYQlC" class="chip accent"><!--pnid:94ETpZSakC9nMjR35r6Bm6-->Lv.15</span></div>
+              <div data-page-node-id="uLx6DRt9t3MF8Wuagyrhw9" class="list-row"><span data-page-node-id="yHI6hfEZJAnPLEBxHpxIEJ" class="ava"><!--pnid:LpPkPi4KqsxAlxnlOb6fOO-->副</span><div data-page-node-id="uVE8zgO0C2zZRmxVHFXH8e" style="flex:1"><div data-page-node-id="EEfiAg6fbe2Y3Ys8Dd8eij" style="font-size:13px; font-weight:600"><!--pnid:SRCWgoKPQriN54it0rXGJG-->闪击小子</div><div data-page-node-id="VmQGM7D4sn7odOMO6z84wl" class="faint" style="font-size:10.5px; font-family:var(--mono)"><!--pnid:hgK1kPpoFatsJiTJOyuIpA-->副团 · 贡献 7650</div></div><span data-page-node-id="WQ9TA8kTihqEvydY53S8z5" class="chip"><!--pnid:KcjQskjEc7PkSio2r1D6TI-->Lv.13</span></div>
+              <div data-page-node-id="2SpGQ8mXVYYfEfqGQdxS5N" class="list-row"><span data-page-node-id="DbM8Nt3FcF0TxsEryyZaAq" class="ava"><!--pnid:BfOEpVXZxh8BFPHiasrft6-->后</span><div data-page-node-id="64GIV3v0MzMpN2UfHqIdtp" style="flex:1"><div data-page-node-id="MnegkGhcSxUsQBP0yNwALX" style="font-size:13px; font-weight:600"><!--pnid:nYxlQihEmkxeoAFwUPA1We-->后勤老李</div><div data-page-node-id="8C3ItEj40FUAwg1DO6Sq9E" class="faint" style="font-size:10.5px; font-family:var(--mono)"><!--pnid:VeCvK8BZrnsVLxz1YWnI7O-->成员 · 贡献 5410</div></div><span data-page-node-id="AGjwOX6lslCUmwzvmmmmz7" class="chip"><!--pnid:3nhWmSwcksY6h9xPetcWzI-->Lv.11</span></div>
+              <div data-page-node-id="NpShW6ACEHoVuKpt0irx1z" class="list-row"><span data-page-node-id="20S9UIpkTaXKX3t1PViTxP" class="ava"><!--pnid:fBtjOfn0D9zrdFQIVyUZl4-->夜</span><div data-page-node-id="Ot0cJ9H1ZK00uzLeHKYwTO" style="flex:1"><div data-page-node-id="zIhLidLzbGyzubujNiaRxc" style="font-size:13px; font-weight:600"><!--pnid:FnUP1J4007DU8eRnw68VY1-->夜袭者</div><div data-page-node-id="BksJmIoZYPyRbxzH69wrcJ" class="faint" style="font-size:10.5px; font-family:var(--mono)"><!--pnid:alBOEZKCkFCoxGVp4QbHAg-->成员 · 贡献 4320</div></div><span data-page-node-id="6sqOJ0svyAlACUUEMJFXcy" class="chip"><!--pnid:3f2CMzsnvRBn8QHMym8fWQ-->Lv.9</span></div>
+              <div data-page-node-id="bXtshNdEPgnh6PXO41Wd7x" class="row" style="gap:9px; margin-top:6px"><button data-page-node-id="jTmj1xcBXvDteWpWFN4KQM" class="btn btn-ghost" style="flex:1; font-size:13px"><!--pnid:9oegJFILfsMb82s3xvBZ8g-->同盟 / 好友</button><button data-page-node-id="oOHKYlA3B6nWhxF3sdpTL3" class="btn btn-ghost" style="flex:1; font-size:13px"><!--pnid:SHIMUwwD5fCNu6K6rRYKQA-->军团频道</button></div>
+            </div>
+          </section>
+
+          <!--pnid:ZI0aBKFUZI3xOLMwxlM6LB--><!-- ===== RANK ===== -->
+          <section data-page-node-id="3DLIo3XA7dflLXGGdPvPoF" class="screen" data-screen="rank">
+            <div data-page-node-id="a5HIgNNr7zolPRJgVvkSwm" class="statusbar"><span data-page-node-id="ZqgbwpjeIz81DYNJdYIVX9"><!--pnid:d1yruPvszoHzEBsXdfrxor-->19:24</span><span data-page-node-id="fWmb3QzXmkP2AkSJCDdSDl" class="right"><span data-page-node-id="BwKMXzW2SSYyWglJiot2fr"><!--pnid:kNtQqIxSM4PX8UbI9Kmu3D-->钻石 III</span></span></div>
+            <div data-page-node-id="vdvTChHQwQXVUKz5EtFgO0" class="pad" style="padding-bottom:6px">
+              <div data-page-node-id="iK9JeP8aMLv5oHp3WT4FUn" class="between"><div data-page-node-id="pRGWFB5IO7GkaunPLtsIrX"><div data-page-node-id="JssEfw4o1O1ofhfK9us3iW" class="tagline"><!--pnid:WVTYhcNW7QXW7mD98yEK3c-->Leaderboard</div><h2 data-page-node-id="KkCE5vkNLdF6S0JGDJlIVz" class="t" style="font-size:18px"><!--pnid:7CNZYp3KozFUmPjX25LaRd-->战力排行榜</h2></div><span data-page-node-id="lU4LJ2hA6llQbfVOI8sVru" class="chip accent"><!--pnid:NgrCiwveewENaC8IDVRf5z-->钻石 III</span></div>
+            </div>
+            <div data-page-node-id="Im9zQO7CUfWDnFsu0SOKke" class="tabhost">
+              <div data-page-node-id="weylR80Ugr79Fv4LNAAlyD" class="tabs"><div data-page-node-id="7yaXg9tUz2fCCtLtipASUE" class="tab on" data-pane="天梯"><!--pnid:bEXuiHq20nIn6MkqTuUtiN-->天梯</div><div data-page-node-id="Z2Ow1R9OmBSn2n5e1vBC4D" class="tab" data-pane="战役"><!--pnid:TM7O1f1J8JB5p6OY50f1EW-->战役评分</div><div data-page-node-id="2SS2ghlHbWl42RJ5tlYPDa" class="tab" data-pane="好友"><!--pnid:aCQAMLqrBdnsk8y2k3bc9H-->好友</div></div>
+              <div data-page-node-id="7P6KSKUXWFaVBFy4DIUGDt" class="pad" style="padding-top:8px">
+                <div data-page-node-id="V6jf9G8UsCGmKQnE0Er9iT" class="tab-pane on" data-pane="天梯">
+                  <div data-page-node-id="bbBt0EQ61ihcI77RYeiQUS" class="podium">
+                    <div data-page-node-id="AHUTmFRZ5qKTKJ1xfV5Mjy" class="pod"><div data-page-node-id="nczArwb5P4nG9QT7jwczSh" class="circle"><!--pnid:ZH6DmeLD3aTjPu9jkE1x1d-->2</div><div data-page-node-id="2LiTvd8JvtjoGpsOMfGL3q" class="nm"><!--pnid:XiasDw4QH7ROMRBvnNH7f3-->闪电战神</div><div data-page-node-id="hZ8tvnNItrDBesKenmhgf9" class="sc"><!--pnid:93soAHDdQ3Uu2aRZYqTJE5-->9,410</div><div data-page-node-id="e7MBUZtBoIux2kNTD9Y2dR" class="pl"><!--pnid:Z1fhJpcJVTE6QM0wgVrPwa-->亚军</div></div>
+                    <div data-page-node-id="Bf3jBbdVjnfq7uNBc9gAli" class="pod first"><div data-page-node-id="zcAmyysy8CMbsi9T1W6IfO" class="circle"><!--pnid:4jgZWBRiUX4eMOnbFbATye-->1</div><div data-page-node-id="Se37n28ZsYIjDQOYs5VkUO" class="nm"><!--pnid:bW9l6SY68dFS6WJZA4JC6G-->钢铁洪流</div><div data-page-node-id="VjSCTG2xoKMSWy4zlFEa9f" class="sc"><!--pnid:7dGtqGhBsNjPmSPFE8MwSo-->9,820</div><div data-page-node-id="QBn3g06s88ne38cSPzvLly" class="pl"><!--pnid:Ppc7CHRx8EnmrGzPLXOJ1q-->冠军</div></div>
+                    <div data-page-node-id="oRShxbIU3T0dW8I2Hjk2Kh" class="pod"><div data-page-node-id="EGwFFuZwctxjQDGoQB0ZYW" class="circle"><!--pnid:7zVBikCRCJHbyuhn1N6BQY-->3</div><div data-page-node-id="Z48L3LsHBFkdW9COm2ZRAx" class="nm"><!--pnid:c58I1aZy2LrmGIw2YYSYvV-->夜枭</div><div data-page-node-id="GDPZf7ryskqj8X4tWGeepA" class="sc"><!--pnid:q6Km96bcBpJOIkmUgeUChc-->9,180</div><div data-page-node-id="R8X0VVJ8fW9nKlEdRXIu1W" class="pl"><!--pnid:y6WSF7oGk0rD8mQJRf8zyG-->季军</div></div>
+                  </div>
+                  <div data-page-node-id="j2Ys5XIACMAQmcrDINV93l" class="rank-row"><span data-page-node-id="0e2zqFOy0JNmSfILVEJyMZ" class="rk"><!--pnid:1WtOiIgl3m4vrMeFezIfOh-->4</span><span data-page-node-id="j4AI1Z9oRal2ahowZ3j42r" class="ava" style="width:32px; height:32px; flex:0 0 32px; font-size:11px"><!--pnid:zbcTKkdEA0s75SIWwAqPS4-->沙</span><div data-page-node-id="D6Nzp6J8W1g7YvChMgE6Lw" style="flex:1; font-size:13px"><!--pnid:SqegrQLl1WCsUpTVGBUGMD-->沙暴</div><span data-page-node-id="wUVJkXliugMz7itQZ3k3yq" class="faint" style="font-family:var(--mono); font-size:12px"><!--pnid:Ei0AcobB0BQsJH7BVBeqJT-->8,950</span></div>
+                  <div data-page-node-id="fvh45Jg3dXhpqvUhF4yy7c" class="rank-row me"><span data-page-node-id="5AwgLHcYt09fA2O8eVJmZS" class="rk top"><!--pnid:vlwWlPD2ID9UWoEM4Do1ie-->5</span><span data-page-node-id="a04PkAn9rb4ZAYYGsNa4dS" class="ava" style="width:32px; height:32px; flex:0 0 32px; font-size:11px; color:#04201c; background:var(--accent)"><!--pnid:JwxBdISasld237FFEJjjZ8-->我</span><div data-page-node-id="bzNRjOcodp5yl7dkBHAOZJ" style="flex:1; font-size:13px"><!--pnid:864EQnai6L08rtAuvaItGE-->我（你）</div><span data-page-node-id="VaOLe7L45sx0KZq1wklBj1" class="chip accent" style="font-size:10px"><!--pnid:grb9MKdNEbqreJcR1Op9OS-->↑ 2</span></div>
+                  <div data-page-node-id="E89FhzvioAmtFeqiwyJ5JF" class="rank-row"><span data-page-node-id="4PTm7DFFIWduoZI2V5E8jg" class="rk"><!--pnid:wYIywwj2DdY1y9NN3uakGY-->6</span><span data-page-node-id="xO8LL4a3OnsoSHelURcymx" class="ava" style="width:32px; height:32px; flex:0 0 32px; font-size:11px"><!--pnid:3GsknT5nlHsgG4y7JuOjDK-->苍</span><div data-page-node-id="OaeDEXtWFvgwggLd5PHAG8" style="flex:1; font-size:13px"><!--pnid:jVGgvPdxeuAbFBCPoKXYRV-->苍狼</div><span data-page-node-id="szMqJTOgAXgMksVPtqtinu" class="faint" style="font-family:var(--mono); font-size:12px"><!--pnid:1kBOs4NzQwTO3eWfo8mQ7D-->8,640</span></div>
+                </div>
+                <div data-page-node-id="vdJkfcYlgHNWJHEhUTokbN" class="tab-pane" data-pane="战役">
+                  <div data-page-node-id="HvWzCkBVNt2wobYIJjS2oI" class="rank-row"><span data-page-node-id="qdbdrSwlD45DiJBCV32CAr" class="rk top"><!--pnid:gakYKFtiC6NDdQKL9Wp6pJ-->S</span><div data-page-node-id="KwPnQUnkN2mx1hNmrECAjQ" style="flex:1"><div data-page-node-id="e0qSXCp3VrcPIkbxITJyR1" style="font-size:13px; font-weight:600"><!--pnid:AA6XECLILdRfLXN7jTZoOL-->二战 · 东线</div><div data-page-node-id="HWpIO3IDbvG3o6uKtdGpsV" class="faint" style="font-size:10.5px"><!--pnid:P9LeGGY9nixJ0BDhwfAmkr-->最佳战役评分</div></div><span data-page-node-id="H8hVDmGuaONcXyJmpmKOV6" style="color:var(--gold); font-weight:700; font-family:var(--mono)"><!--pnid:Lend8ItDvsM0OEuT4JCDXy-->9.1</span></div>
+                  <div data-page-node-id="w0WCNN95QLJffgZzPWs229" class="rank-row"><span data-page-node-id="P52Z6QAWhOUu4jzbfdHEV0" class="rk top"><!--pnid:DU4p8VNy2ignCb1Tm7RRRc-->A</span><div data-page-node-id="TwDiJlPujGUfDagDSk5Dgf" style="flex:1"><div data-page-node-id="SbqgHmF6eRslSNKPtAj5Cd" style="font-size:13px; font-weight:600"><!--pnid:ezLWDJWXaCv98G3wHotnaH-->一战 · 欧洲</div><div data-page-node-id="Pawwx25LM2cJ4hI83Po9oO" class="faint" style="font-size:10.5px"><!--pnid:6sSbGAZPdoIOtwDl1aGY2f-->最佳战役评分</div></div><span data-page-node-id="tJBtCcDGD0BvqAciTVp5q5" style="color:var(--good); font-weight:700; font-family:var(--mono)"><!--pnid:aouITvd1OjoWt6gR7Uh0h9-->8.4</span></div>
+                  <div data-page-node-id="FeYv3jejMrQbdGgTcfeCi2" class="rank-row"><span data-page-node-id="vrIBvtRci7RysRSDEYhONm" class="rk"><!--pnid:RUE3aOFoTnhXXFOWevQTVA-->—</span><div data-page-node-id="ZWID4LiaVbep7RmWGOvs5J" style="flex:1"><div data-page-node-id="WFCesuLmsHRNv2jDGtkuSf" style="font-size:13px; font-weight:600"><!--pnid:BbMufd9sVZdGS2hZRbxxr8-->二战 · 西线</div><div data-page-node-id="gSjC9hpPUdb9qjkruplA0E" class="faint" style="font-size:10.5px"><!--pnid:y3ki5gIdWFgIVx20UKBOZv-->尚未通关</div></div><span data-page-node-id="2pLs0VuuAUlouAbl5XyaXk" class="faint" style="font-family:var(--mono)"><!--pnid:pvl42jEKATtdLYKsTFmb3L-->—</span></div>
+                </div>
+                <div data-page-node-id="1v4f1RBrhJXgZFqkbCB2kb" class="tab-pane" data-pane="好友">
+                  <div data-page-node-id="aUDuTVevRWsUZSIjSH6LVZ" class="rank-row"><span data-page-node-id="vvq7BT3FYEKNkwqVxnqLBi" class="rk top"><!--pnid:jDcEKMGSdiUOv1rJwAKRzu-->1</span><span data-page-node-id="ATbXXWepoB7kj4OXZYQAEq" class="ava" style="width:32px; height:32px; flex:0 0 32px; font-size:11px"><!--pnid:BULdaWsyetBNkBgkHTkibD-->阿</span><div data-page-node-id="0kTyvPZXTUk8EBmR2iitvy" style="flex:1; font-size:13px"><!--pnid:QE6MAl1RL4naG9uXXUjr93-->阿强</div><span data-page-node-id="y8EfVr5IH3h7Ocxi6zk52K" class="faint" style="font-family:var(--mono); font-size:12px"><!--pnid:kg5SpUXAi3pyIM6N4WRdpp-->9,120</span></div>
+                  <div data-page-node-id="8jKFMdHbrILR2kOiR1HAJI" class="rank-row me"><span data-page-node-id="jsXpFKV0C8qOBHaRtvS88B" class="rk top"><!--pnid:2ekDev4J4BtUMmxK4j5Yp2-->2</span><span data-page-node-id="G3DbVUlHQsCVVGIGiQT1NQ" class="ava" style="width:32px; height:32px; flex:0 0 32px; font-size:11px; color:#04201c; background:var(--accent)"><!--pnid:TQO6acFossEnJHj1PN6PKf-->我</span><div data-page-node-id="dF2zrJxd8LaepJdw0MDTkV" style="flex:1; font-size:13px"><!--pnid:SNTgurpsbeLbGaS4wRquMw-->我（你）</div><span data-page-node-id="U4BPnmZuCjOPS0rMzuYmr4" class="faint" style="font-family:var(--mono); font-size:12px"><!--pnid:UAg2QZzckzhpNE4YlABomn-->8,720</span></div>
+                  <div data-page-node-id="Kpjv3BEUn4bhqUcVRivrdE" class="rank-row"><span data-page-node-id="qxmuv4trHhA8tuXuzEaSFK" class="rk"><!--pnid:dRhdeo65NIh56dc4g2uCx5-->3</span><span data-page-node-id="JB5p2rXPBXst19km4XYJvs" class="ava" style="width:32px; height:32px; flex:0 0 32px; font-size:11px"><!--pnid:fGEzXyzscfqUPb8ySdMwkB-->小</span><div data-page-node-id="scY4LtYiQS58ai572B2jEG" style="flex:1; font-size:13px"><!--pnid:PbOFEeIxpTbNBIuJZdWhna-->小米</div><span data-page-node-id="K5hsPelHvgnKwS3V68FP66" class="faint" style="font-family:var(--mono); font-size:12px"><!--pnid:j0678fSguFDmELp6h20IDX-->8,300</span></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!--pnid:2j8OjxxcV9m1cGA9PSlwJv--><!-- ===== SETTINGS ===== -->
+          <!--pnid:Oy5A1hCjtWaFeT5bqWX5F7--><!-- ===== EDITOR (UGC) ===== -->
+          <section data-page-node-id="KnmvO3JmzzQGr2DxZ6nLFb" class="screen editor" data-screen="editor">
+            <div data-page-node-id="uwERjnjQXwvpAK7B8ZfWr0" class="statusbar"><span data-page-node-id="o6gmn9tRW3r2us0220V8kt"><!--pnid:61bqE3mhyf3qFoTWG3ZaZD-->19:24</span><span data-page-node-id="UCJg4WJ6bnKUIElCWeHIq5" class="right"><span data-page-node-id="9rW5Oqz64lF0HbqZwXVCjV"><!--pnid:U5LJYRrPbsNNuwergsfuwT-->剧本编辑器</span></span></div>
+            <div data-page-node-id="OkD0ZFYsScxQlCBSimXiiA" class="ed-top">
+              <div data-page-node-id="70zrOExzvGml3MqP7undj0" class="nm"><!--pnid:ug2GGg0VUj0795J0jnvQBy-->我的战役 · 暗影突围 <span data-page-node-id="rotJw2su3qQh5YUhegO5qB" class="pen"><!--pnid:011TYfLNwlz1wW6fi2Dm4W-->草稿</span></div>
+              <div data-page-node-id="opBzJAtQ7858yzV4iUSEVd" class="meta">
+                <span data-page-node-id="O3SHX90nApZo58sol7sSWY" class="chip accent"><!--pnid:mJnFUIIFvtVS5t9frOvKbX-->12×9 格</span>
+                <span data-page-node-id="Bz69qyvJCO1f1T5FQzrvJ7" class="chip"><!--pnid:EDQo7P1STxHdNEubYrM8fH-->1943 东线</span>
+                <span data-page-node-id="D5sZToAk6nz1QaeXye8ZBP" class="chip gold"><!--pnid:F1gxM3CyDXr80QAV6Q3YeB-->胜利：占领枢纽</span>
+              </div>
+            </div>
+            <div data-page-node-id="gRdez3m9SBwFJE2UpAX0G0" class="ed-tools" id="edTools">
+              <div data-page-node-id="0AHCegIVDvUmtxu7K2qajA" class="ed-tool on" data-color="#16202e" data-fill="#16202e" data-label><span data-page-node-id="UhtGJosikaC4FpIaLYcKZZ" class="sw" style="background:#16202e"></span><!--pnid:LUvmkpu0VPKTyP39kLcAf0-->平原</div>
+              <div data-page-node-id="DwcFlMCv0cgl9GNEOLiBZh" class="ed-tool" data-color="#15301f" data-fill="#15301f" data-label><span data-page-node-id="cOOVwhtp5cCPKboWKp54zE" class="sw" style="background:#15301f"></span><!--pnid:YmaJLcQ06AP9mYgxyA7XXW-->森林</div>
+              <div data-page-node-id="FgmwL2dfcJADMKq7ze6y9f" class="ed-tool" data-color="#2a2336" data-fill="#2a2336" data-label><span data-page-node-id="nhgGiqzOjiTGa5QypTpcFZ" class="sw" style="background:#2a2336"></span><!--pnid:zM6KNEjF9MlmyhGLEZQDMt-->山地</div>
+              <div data-page-node-id="4cDNoqhjTvunCQOR0wOMBI" class="ed-tool" data-color="#102a3d" data-fill="#102a3d" data-label><span data-page-node-id="DXjAqx114O7vxN9vlOQnP0" class="sw" style="background:#102a3d"></span><!--pnid:zdMjXDdoocsQKCzrHZM0Xh-->河流</div>
+              <div data-page-node-id="wevnwTDYtjNyBuFM0cAOpd" class="ed-tool" data-color="#222a3b" data-fill="#222a3b" data-label><span data-page-node-id="AkNCkNbpw0P45XVCdcDaOt" class="sw" style="background:#222a3b"></span><!--pnid:0T9vN059V3ZLBv7uUPTIY0-->城市</div>
+              <div data-page-node-id="o0UiYBQtYdcCUuODowqb08" class="ed-tool" data-color="#27E0C6" data-fill="#0b1320" data-label="装"><span data-page-node-id="ynj6getAAAfIykTxmPJCBf" class="sw" style="background:#0b1320; border:1.5px solid #27E0C6"></span><!--pnid:W6g5kfrWbFHcGxzkNn4RkB-->友·装</div>
+              <div data-page-node-id="0IQv6OYS0q3Cj9qzYiEHJc" class="ed-tool" data-color="#27E0C6" data-fill="#0b1320" data-label="步"><span data-page-node-id="S6mI1JSxUiosxbEX1GXrsx" class="sw" style="background:#0b1320; border:1.5px solid #27E0C6"></span><!--pnid:IaUyZDXCaKSXDsui6bwzH6-->友·步</div>
+              <div data-page-node-id="rC4mRYdATzdU8KLcGu4Ahp" class="ed-tool" data-color="#FF5A65" data-fill="#0b1320" data-label="装"><span data-page-node-id="LnEltzAH0gTAXPZ6vjJG0A" class="sw" style="background:#0b1320; border:1.5px solid #FF5A65"></span><!--pnid:42cWPSadU3Pa1LocBM905U-->敌·装</div>
+              <div data-page-node-id="sR6bzrkmfaciI0Ad3Nz7QN" class="ed-tool" data-color="#FF5A65" data-fill="#0b1320" data-label="步"><span data-page-node-id="kuJs9us2E3pIVJLJ6jyEIj" class="sw" style="background:#0b1320; border:1.5px solid #FF5A65"></span><!--pnid:M3QzVcdwMu8NMtj9JAuN3D-->敌·步</div>
+              <div data-page-node-id="i1W1fgqlTz4hDhuAV8Mqev" class="ed-tool" data-color="#16202e" data-fill="#16202e" data-label><span data-page-node-id="YBlSUhKO5EpMxwBOAbltVa" class="sw" style="background:repeating-linear-gradient(45deg,#16202e,#16202e 3px,#0a121d 3px,#0a121d 6px)"></span><!--pnid:Gl4clrRArIDmLlSXgASNlK-->橡皮</div>
+            </div>
+            <div data-page-node-id="UljGYlaTBK1gSoMa0FIj6s" class="ed-grid"><svg data-page-node-id="JpLTQN1kB9yTItEfPC6HeM" id="edMap" viewBox="0 0 360 300"></svg></div>
+            <div data-page-node-id="pYn69cGRKqA3bk2yhB5SQB" class="ed-compliance" id="edComp">
+              <div data-page-node-id="3FvDKhNymoQgVdcJtkRviL" class="box"><!--pnid:f45y973hLhkLRfxnsubguS-->⚠ 合规提示：剧本发布前将进行<b data-page-node-id="ipR0QxL7naUufNVpowAHcY"><!--pnid:rBxNaRrxRJmHpgt4pTITUX-->敏感度分级审核</b><!--pnid:nxMqZGp8vtygczG3GwA05c-->。涉及高敏感历史题材（抗战 / 解放战争 / 抗美援朝等）的 UGC 内容将被隔离评估，未通过前不可公开。</div>
+            </div>
+            <div data-page-node-id="za7fP6kW55qG5ceWhLaYtf" class="ed-foot">
+              <button data-page-node-id="tErWlbDRqBn59n3fExnF4n" class="btn btn-ghost" style="flex:1"><!--pnid:vXc6WhKbgssCYiOdCM87WH-->保存草稿</button>
+              <button data-page-node-id="TGd8uzh2lLFOmOYqwbjBuW" class="btn btn-ghost" data-go="battle" style="flex:1"><!--pnid:jOAmLLUU9aoEHiMFgm8oN3-->测试推演</button>
+              <button data-page-node-id="ghYOUqrUFZpSvlcifo2jrE" class="btn btn-primary" id="edPublish" style="flex:1"><!--pnid:BWFci22ppzN4aXi1niqfND-->发布</button>
+            </div>
+          </section>
+
+          <section data-page-node-id="ero7CwwJd1nLpv67CCjO4J" class="screen" data-screen="settings">
+            <div data-page-node-id="CZdiZYuskVuY9TTPn1A2Sa" class="statusbar"><span data-page-node-id="C8fuEZYmEDa5lhoL3UChP1"><!--pnid:FVFWStTuUHDekle0k4e1Fn-->19:24</span><span data-page-node-id="qzVeaXKxa24k9TgkzmpgFZ" class="right"><span data-page-node-id="ZTzUoJYe2EdSTK41j6lafk"><!--pnid:tn8voGpb2okBXnekV8gKeM-->设置</span></span></div>
+            <div data-page-node-id="pwcT3wNDiE8XNLELBUFTj0" class="pad">
+              <div data-page-node-id="iWqoffDgx2VTDUMk1tK02j" class="tagline"><!--pnid:jStgZdoGrOrxfA0Ef0KnR7-->Settings</div><h2 data-page-node-id="AzEcm3XCORW6cbeqjypRCH" class="t"><!--pnid:vPoG9u4pjAqAd1XeQkf0mk-->设置</h2>
+              <div data-page-node-id="sct2YvD7pZwUT6aLFK0Kbf" class="muted" style="font-size:11px; margin-top:4px; letter-spacing:1px"><!--pnid:0up3hjwGYemW3a6A2Suqaw-->账号与安全</div>
+              <div data-page-node-id="wEnHPzpUYwiRfYEYz0AtGE" class="list-row"><span data-page-node-id="XYMRA2LijvHOU2us6n4PYg" style="flex:1; font-size:13px"><!--pnid:TUgbAFuVAE07WKQ8ugNZTG-->统一账号</span><span data-page-node-id="UfBUS0Tzcd6MPLMNkteW3G" class="chip"><!--pnid:JadrlvX3sinAZPU2rIzz1N-->已绑定手机</span></div>
+              <div data-page-node-id="VVOAi46ZuyWZehFWaMQcBL" class="list-row"><span data-page-node-id="Xna0JsFDr57FgiroOJs6GK" style="flex:1; font-size:13px"><!--pnid:1mKiTiJYwfen9LEWKgSqii-->云存档同步</span><div data-page-node-id="KZZoxXbfBiKwjpBM1YtEOk" class="toggle on"></div></div>
+              <div data-page-node-id="CsG0q0kSK3ZaVcKgS7qU7F" class="muted" style="font-size:11px; margin-top:14px; letter-spacing:1px"><!--pnid:ByQyWlYHVrH1eo9evRlORg-->画面与音效</div>
+              <div data-page-node-id="CaQCZ4OoC5xRjH841ZIscF" class="list-row"><span data-page-node-id="9ewFIAGcKSw6YTLXNFaMHc" style="flex:1; font-size:13px"><!--pnid:q731j4MXGciBctWnGGjBZU-->画质</span><span data-page-node-id="D1WmTtsoiSa7Mi2YMz7drJ" class="chip"><!--pnid:d41BKh7I2hiTaV6otBP4jm-->高</span></div>
+              <div data-page-node-id="Zq7P0rFN059KJyISlEvdbe" class="list-row"><span data-page-node-id="VzgPylrc0s9gIYSS7JS5R4" style="flex:1; font-size:13px"><!--pnid:nwUXZ6FFNTevNJPFdfqUnx-->战斗特效</span><div data-page-node-id="VsoAfGRSfJZ5IzTGr1e8kv" class="toggle on"></div></div>
+              <div data-page-node-id="cAoYaRrL983n6NOkhIiRk7" class="list-row"><span data-page-node-id="1bWduQ9QpV20sJYBF2CvZg" style="flex:1; font-size:13px"><!--pnid:ZjY5XkiEcH7qLhpgOkxMd7-->背景音乐</span><div data-page-node-id="AIodoGebyGFcGExvUI9rqp" class="toggle on"></div></div>
+              <div data-page-node-id="QTF5HxuQiQZS3sMdn9mhmv" class="list-row"><span data-page-node-id="slPqKRkdBVDtRvOC4yqU4C" style="flex:1; font-size:13px"><!--pnid:F1bbt2M516l7ccJdKlsPMq-->音效</span><div data-page-node-id="fRG8EsweIFqnNUO2gngqVk" class="toggle on"></div></div>
+              <div data-page-node-id="t8oT01RPr8UJ1u0ECVPViz" class="muted" style="font-size:11px; margin-top:14px; letter-spacing:1px"><!--pnid:HjIN22jztc1IS7DFbfDIW9-->通知推送</div>
+              <div data-page-node-id="KitfSI2K0AYvR29RWC1ddN" class="list-row"><span data-page-node-id="Kj6mVA7CNd7Q9yu3ElnmWn" style="flex:1; font-size:13px"><!--pnid:Huu2cMlq9oqMFMZmxwZ3e3-->回合提醒</span><div data-page-node-id="x8Puajmmf9RyvbPVCmfoL9" class="toggle on"></div></div>
+              <div data-page-node-id="NsCFLXNMHg2lTZ4Cd0wmYQ" class="list-row"><span data-page-node-id="k5moDdYlgJv6tmqCL4po4a" style="flex:1; font-size:13px"><!--pnid:SrB2cB6W84dESwBGeIqVXJ-->战报推送</span><div data-page-node-id="RDQqgEBJX8m88e1cCDIVwD" class="toggle on"></div></div>
+              <div data-page-node-id="3XXPf4pupJLAYWtzv3BU2s" class="list-row"><span data-page-node-id="I5DAOLH6kes4ul2tTbo05T" style="flex:1; font-size:13px"><!--pnid:LxHi8Tcdgb6xb38FMgGTsl-->军团消息</span><div data-page-node-id="l4Orb5qIqgZdM8XQP9w7B3" class="toggle"></div></div>
+              <div data-page-node-id="iqXgAoxDGiJhZPZ7vZHlbm" class="muted" style="font-size:11px; margin-top:14px; letter-spacing:1px"><!--pnid:kITysDBahTkE0IoM4t2xKy-->防沉迷（合规）</div>
+              <div data-page-node-id="gqHhVUTzag9oZH07ot2Rxx" class="list-row"><span data-page-node-id="shkADsVwy2i6IUUDew9BFh" style="flex:1; font-size:13px"><!--pnid:eAWQLWTnGa78bvQ9ODjY6W-->实名认证</span><span data-page-node-id="f0kvVrp3PmjjJzmpUaTtbA" class="chip" style="color:var(--good)"><!--pnid:Isyx6KfTAFEZ7IOP21LS4h-->✓ 已通过</span></div>
+              <div data-page-node-id="B4hzocBwQ5rsWi20SgrgQt" class="list-row"><span data-page-node-id="Kq2MsfHBtcbGkzRhUWdyWe" style="flex:1; font-size:13px"><!--pnid:y4n2PSwteq8vJT6wp69HYk-->今日剩余时长</span><span data-page-node-id="CiSmBVfcUBAn4MBNnBd49r" class="chip gold"><!--pnid:4f0MQe74mmSd6TkLIjsApw-->1:23:00</span></div>
+              <div data-page-node-id="vGHfzLhsnp08ff7dD8OOoO" class="list-row"><span data-page-node-id="l8NpyIfwSMhr4CN5Mbfjvu" style="flex:1; font-size:12.5px; color:var(--dim)"><!--pnid:4St0CUSyYCWlzmikLhpRTM-->健康游戏提示：适度游戏益脑，沉迷游戏伤身</span></div>
+              <div data-page-node-id="6tLV9OEZHybL3jgvUjarYD" class="muted" style="font-size:11px; margin-top:14px; letter-spacing:1px"><!--pnid:g48zXoXX7eggZaaYovAh6G-->隐私与帮助</div>
+              <div data-page-node-id="7LZ33I1xQJGnrOx7XVM3SP" class="list-row"><span data-page-node-id="xmEuaGGbKauj7Zp0gN7Obo" style="flex:1; font-size:13px"><!--pnid:wkfhxVuyTzEtyBG6Wk29EG-->隐私政策</span><span data-page-node-id="BFWgOAIDaqFB6g3pSeZa4D" class="faint"><!--pnid:pLUJYP1coGIIAELFjrqjzW-->›</span></div>
+              <div data-page-node-id="SobL2UZB8ei42Eo9ofD2WA" class="list-row"><span data-page-node-id="ucYBmqKUt0aCpdVVtjXh6u" style="flex:1; font-size:13px"><!--pnid:wDXp7ArOQNTLyj3saaOG2W-->用户协议</span><span data-page-node-id="X6mqgvhO6KPSgIwuyD962O" class="faint"><!--pnid:fekK0m9zWQo1PFyLz7sKQj-->›</span></div>
+              <div data-page-node-id="U7RULifENIWD99q20W7PZi" class="list-row"><span data-page-node-id="tqw61qQQKJFyvkEvUV6plg" style="flex:1; font-size:13px"><!--pnid:o9nVIDaI3NyMcrKp7hh2IC-->客服与反馈</span><span data-page-node-id="3eAOTujW9pTDGJRu5N9N7I" class="faint"><!--pnid:WIaNDiwlWPZ9rAKU5awk5X-->›</span></div>
+              <div data-page-node-id="Og6FyMivfp0oyvODDRNcaM" style="padding:14px 0 6px"><button data-page-node-id="DYVshYNb6Fa3DZiINPzV0z" class="btn btn-ghost"><!--pnid:oJjfa8OHFNHpvgIt2HxMFE-->退出登录</button></div>
+            </div>
+          </section>
+
+        </div>
+      </div>
+
+      <!--pnid:nOyFYllNTTdihwXu9slTzT--><!-- wide stack (spec) -->
+      <div data-page-node-id="HEKWpGy9ctqb8FB9lf6o9f" class="wide-stack hidden" id="wideWrap">
+        <section data-page-node-id="IvQ5Cs980hCCTtyOguZekA" class="screen spec active" data-screen="spec">
+          <h1 data-page-node-id="217jcC0p6nfvKzbS812O0X"><!--pnid:CUXK0AfSS9hEIDDd0GM7aj-->设计说明 · 铁幕兵棋 HEXFRONT</h1>
+          <p data-page-node-id="ycI0TBqelxVs5uIZt9NeyG" class="lead"><!--pnid:jdkvNqopBL64NfG4XItN46-->本原型依据《产品设计文档 v1.0》梳理的信息架构，以「深色科技风 · 简洁大气」为基调，呈现一款移动端硬核兵棋策略手游的核心交互链路。所有内容均为原创设计，不复刻任何第三方美术、数据与文案。</p>
+
+          <div data-page-node-id="LANWAFH3Ebuj1MguPKZGpq" class="sec">
+            <h2 data-page-node-id="GX5OO95hHqGsitpTAFhFfm"><!--pnid:7maBgk2ugEkB9XQeQJOLr6-->信息架构（对应文档四大支柱）</h2>
+            <div data-page-node-id="o3lQyKNIiHIc6ZjX0H1AYP" class="grid2">
+              <div data-page-node-id="9rksFBrdvAho7wb4I8KH4a" class="box"><h3 data-page-node-id="gLoSr3ZtsxPIMLo2JhwCre"><!--pnid:hPytn2rzjixlZpsS1PfL3D-->① 统一引擎层</h3><p data-page-node-id="2Gy0g4GReHw7PLDr5i3rg3"><!--pnid:dW4nlmWfcGDxEM87nOj2Py-->核心玩法引擎（地图/单位/作战/后勤/状态/指挥官/回合）· 模式规则层（职业/专业/娱乐三模式四杠杆）· AI 与对战 · 引导帮助。原型覆盖战斗主界面、单位面板、后勤、指挥官、回合。</p></div>
+              <div data-page-node-id="I15o4ZX5HfSDMmgcgdw7Dl" class="box"><h3 data-page-node-id="wqWdMEogx6FWbP01HT0mgG"><!--pnid:yGKq5OSWRiDa04ZClogL5I-->② 内容副本层</h3><p data-page-node-id="tyvK9x3iclxCCFF1QmDgba"><!--pnid:W8w3CQfq3gMDBXqTrpEPCz-->副本商店 / 已购 / 解锁 / 剧本列表。副本按合规敏感度分级：低敏感（一战/二战）首发，高敏感（抗战/解放/援朝/军阀）后置锁定，隔离风险。</p></div>
+              <div data-page-node-id="1kzwB1IDf0WHKUDCG785jj" class="box"><h3 data-page-node-id="jD95JWfISVkgtSAuuSeMtx"><!--pnid:OzHiPxihxBnmMOV7S7Mabi-->③ 移动平台层</h3><p data-page-node-id="K1FSLWNBX5OtYi4TeI0d1p"><!--pnid:H6UTGDOzbVSTdKxpj8oMMM-->移动端单平台（iOS / Android），云存档、统一账号、推送通知、异步回合。原型以移动端为唯一载体呈现，顶部资源/回合状态即一致同步的游戏态。</p></div>
+              <div data-page-node-id="lSbjewOWuESz7tz77cq0SM" class="box"><h3 data-page-node-id="sYpV5cCCGdxrnZgrxQnQ07"><!--pnid:RQ4UpIviVISUSCfWu9fk6g-->④ 商业 · 社交层</h3><p data-page-node-id="KNcZIbwB8u9XqmCmm6Iyqw"><!--pnid:CFqcVHv3ty0HO5341ZNV76-->免费基线 + 内购（副本/外观，禁 pay-to-win）· 社交社区（公会/排行榜/UGC）· 运营后台。变现以副本解锁为核心载体，公平底线写入结构。</p></div>
+            </div>
+          </div>
+
+          <div data-page-node-id="yqj7RP8c4VHHbY1f8H17sE" class="sec">
+            <h2 data-page-node-id="sEfmh9kBfZTzMyIOOLqIrl"><!--pnid:UDRzJJmZA6Z847UbeyB27J-->设计系统 · Design Tokens</h2>
+            <div data-page-node-id="gatMNRTsSjfi5YZrzsrKyG" class="grid2">
+              <div data-page-node-id="w09AOReT5sk6cVO8keVo9W" class="box">
+                <h3 data-page-node-id="ccwcbJ1bBWi8Yba2aXVvSu"><!--pnid:MVBk4X0eytH4WFGNScPgrF-->色彩</h3>
+                <div data-page-node-id="QAIzu0Tjmj41w9ZmyrnOx9" class="swatches">
+                  <div data-page-node-id="oljAutzO8RFWo5DzgOE1L0" class="sw"><div data-page-node-id="wyC3uu5OUHES97QjS4Kui5" class="c" style="background:#080B12"></div><div data-page-node-id="Gr9vX0BrnQaQV7LVaa92eN" class="n"><!--pnid:kZaBKuJUJKFOUAzwQGwR4G-->bg</div></div>
+                  <div data-page-node-id="IHmjIqFR37T3alCn19ustQ" class="sw"><div data-page-node-id="JZvMCjDPZFb0g2nvGFUiHd" class="c" style="background:#121927"></div><div data-page-node-id="V2ekW7CrPDjdUHXJpNzA6k" class="n"><!--pnid:cV6QZOMjmMoc7yeG5eocuz-->surface</div></div>
+                  <div data-page-node-id="04unmHOUVYm8ntkcSp2dYq" class="sw"><div data-page-node-id="7TWDqj1hPMQAYfRwEUKpSV" class="c" style="background:#27E0C6"></div><div data-page-node-id="XVjcnhX41PnP40xW9qpym5" class="n"><!--pnid:yFj0ytmFv2KDRrgRfVcKSa-->accent</div></div>
+                  <div data-page-node-id="mCq6YinEWw2AdoXW9JbAN1" class="sw"><div data-page-node-id="SjAMMqJX5UPFKAZeJ4eXql" class="c" style="background:#3DA9FC"></div><div data-page-node-id="i2FbCCRqEnTtEU21xdPKFK" class="n"><!--pnid:BdK4COMo7BHCwTooz91d3Z-->blue</div></div>
+                  <div data-page-node-id="Kzsw1Q95B0oiEKSriUBOyp" class="sw"><div data-page-node-id="mjnN6BBM5g44t0OaZyxYA1" class="c" style="background:#F5B545"></div><div data-page-node-id="16jBIKkqxpz8O0A3NHYoep" class="n"><!--pnid:KHorrE3oZNH8lNo943mqjk-->gold</div></div>
+                  <div data-page-node-id="qVA4G0sZrFf2tuQ5hnJrYL" class="sw"><div data-page-node-id="s0KiOAFvbvQSdL56z3fxnR" class="c" style="background:#FF5A65"></div><div data-page-node-id="9ks2NRBsNeqGJiVNUFRu2F" class="n"><!--pnid:lL041WL15kbGoq9VhI3UGR-->danger</div></div>
+                </div>
+                <p data-page-node-id="ukoe8dpjQ6b6y7QOjNSd44" style="margin-top:12px"><!--pnid:SQlfCsTuLmFUWwqt5FLMCC-->青绿主色传达「战术科技感」，金/红分别承载补给与交战语义，深空底保证信息降噪与战场聚焦。</p>
+              </div>
+              <div data-page-node-id="uOrpOi8gZvzIgLOtsIpXq3" class="box">
+                <h3 data-page-node-id="oL0Q9cwV8iVWFMBH4n9o3M"><!--pnid:hwdIevDEXWOpVok8kjKIE1-->字体与栅格</h3>
+                <p data-page-node-id="glZFmRu8yCCF2ZOm5LJGa5"><b data-page-node-id="xUcgzBIYWOJuN6SvekhQ2T" style="color:var(--text)"><!--pnid:aXzTLtqM3tVFri7af0MkWH-->字体</b><!--pnid:BeqJ7iAEU9WVQ3SlXP44yj-->：PingFang / 系统无衬线；数值与代号用等宽（Mono）强化「数据兵棋」气质。<br data-page-node-id="LWU63H7tvfTJ11O0AJUCr1"><br data-page-node-id="Lx6hVFuF7AfsQMqzBr7S8R"><b data-page-node-id="LbIkm9KfatdGIcajd8FWXi" style="color:var(--text)"><!--pnid:g5Q1EtjtZjH8ewFsVme3ch-->圆角</b><!--pnid:ObcqKeZQ6i3ILfibCjmMUL-->：卡片 14px / 小组件 9px。<br data-page-node-id="RyJwymf3MiEoAHYcYa9Jj2"><b data-page-node-id="mTJsQLsRVuye9qNqPdptL1" style="color:var(--text)"><!--pnid:KcunilYF4fERjKvex7X30Q-->间距</b><!--pnid:g9hzj2yFXanm5B7uUQfsXG-->：8 / 12 / 16 / 24 四级节奏。<br data-page-node-id="m54ID6MmbcqKYtLJiDPkSU"><b data-page-node-id="cIiocaeTLXY2zKRhr9NsmH" style="color:var(--text)"><!--pnid:sPFfqsxwvzxx4ryEtZReNl-->设备</b><!--pnid:a1ZKVfYR9zKacxB4vEoF4d-->：390×844 移动基准，居中手机框呈现，符合「移动端可玩硬核兵棋」定位。</p>
+              </div>
+            </div>
+          </div>
+
+          <div data-page-node-id="bJM20MaXkTlwnYN156KzDy" class="sec">
+            <h2 data-page-node-id="cowM87NrDnoSZyJQLj8uO4"><!--pnid:BTSsbaMSza7QLAkClCe7ES-->关键交互原则（取自文档移动端适配）</h2>
+            <div data-page-node-id="pTIyttYm1VCqSxcezCOXPZ" class="grid2">
+              <div data-page-node-id="Y0MQLb3Ncy46HG6d6tq9L3" class="box"><h3 data-page-node-id="1irSoyo8OiQdXEu438zHJT"><!--pnid:rPG9VI546RrKojYlQmGAxi-->信息降噪</h3><p data-page-node-id="2LXkXK9jEAnhgoPMFY8bUV"><!--pnid:GHiXKAzGjxx9b1Wi4VvFj5-->首屏仅暴露「可攻击目标 / 受威胁 / 补给率」，深层数据（CF 公式、损耗模型）二级展开到单位面板，避免硬核信息压垮小屏。</p></div>
+              <div data-page-node-id="9N6doO79dSPPGu0gFf2ze1" class="box"><h3 data-page-node-id="RR6SiNwCTsLHj4V8EcfzLf"><!--pnid:fmMBKZpn9GSYpTjNdZKtUF-->情境操作条</h3><p data-page-node-id="UZeqx8AxZZyeHRBjkUTfdT"><!--pnid:dp0uF2JfimQ5mZlHJDCbjH-->选中单位 → 底部弹出「移动/攻击/补给/编队」操作条，替代 PC 右键菜单，拇指可达、零学习成本。</p></div>
+              <div data-page-node-id="oLfms64AY76iLpJUBI1pYo" class="box"><h3 data-page-node-id="0gN5Fq12bnHzc9Gf1mJ3FX"><!--pnid:YYZB8ojGJGzHTyK6IurtRL-->LOD 聚合</h3><p data-page-node-id="RTaqxnfynKAV9I6AdDsnLt"><!--pnid:0BZeIzkUc1ORYJHwPTWyAR-->低缩放合并单位与简化地形，保障低端机帧率；高缩放展开六边形网格细节。</p></div>
+              <div data-page-node-id="LlTay668AdV5gxTatLHc4P" class="box"><h3 data-page-node-id="5QJonPsu5qFo6Kvf1EaTRR"><!--pnid:aZzSUSGWIlarPlvaef98tg-->异步回合</h3><p data-page-node-id="pM2YvX977QLl1vm8kkdhrc"><!--pnid:1yCJtCDu50USOS8VWyKdVi-->回合推进云端计算 + 推送通知，支持碎片化时间推演，呼应移动端随时续玩的价值主张。</p></div>
+            </div>
+          </div>
+
+          <div data-page-node-id="Oefo6fANDrrN2IS0TDGEba" class="sec">
+            <h2 data-page-node-id="RrnsxFeO5L9In9iwdAqlOe"><!--pnid:LXtoYw0GzWFzevb1VgL0FO-->文档 → 原型 可追溯</h2>
+            <table data-page-node-id="6F5iAQDhhao2h8Q1N6ZW9k" class="trace">
+              <thead data-page-node-id="jaztQXDH76GLoQWEEry3kc"><tr data-page-node-id="JQu5DBvRcazG2g7MpmQnwC"><th data-page-node-id="4VRBGHqU3WQUryY1V35SUM"><!--pnid:DKlvxSB0jJoOhGGSLfK6Ws-->文档章节</th><th data-page-node-id="kSy5kov3bT7o9d6XG3Q9rv"><!--pnid:qZsbdRNNImFb7YkKG5IeWi-->原型页面</th><th data-page-node-id="vt7r0IqFw3xCd9XttiS4Ye"><!--pnid:WufdmoJbegU8YYzOYUhcje-->关键映射</th></tr></thead>
+              <tbody data-page-node-id="K9l3BSRzGRs6RHiWGzvsks">
+                <tr data-page-node-id="ZVlJTxNZNxpBjiIXwShbeT"><td data-page-node-id="vn1ULqclGh1XsiWDsmmfYo"><b data-page-node-id="Lqz7h7XXxNn78K1nUdPy1E"><!--pnid:fWJGg2IGFt2zPFdch1Gbti-->一·产品定位 / 二·关键决策</b></td><td data-page-node-id="xE1SFciqYoUUsxOQF8ixgJ"><span data-page-node-id="koWzcyfFTdelR8JT3oKOjb" class="c"><!--pnid:4bebVsDQs2nHdAlmCoNeVQ-->home / modes</span></td><td data-page-node-id="vgS44uVpu9IeNmDC5StLPI"><!--pnid:r6ddtNXYFvNu3kF5fj9Dsp-->移动端硬核兵棋、三模式四杠杆、免费+内购</td></tr>
+                <tr data-page-node-id="rBL2BeJAdEoHFqz9nSP0XJ"><td data-page-node-id="pJ6Uvjkb0WuTG3hZFVEnbM"><b data-page-node-id="ifnN1RBo9FKY5oEu2OBDrS"><!--pnid:iLedannrUszEExomMW1j3g-->四·多地图副本架构</b></td><td data-page-node-id="0ywj53HKqhsLQjOLgDfWfG"><span data-page-node-id="v34Ychjg3W5zYsuIonpTu3" class="c"><!--pnid:sfswBtEjREZK5nuUibnkLO-->lobby / detail</span></td><td data-page-node-id="LAai3cVwF1ZW5lZ7mbqF5D"><!--pnid:iQ8VPTnOroW0X2jjqE4jHS-->合规敏感度分级、副本=内购载体、二战东线首发</td></tr>
+                <tr data-page-node-id="HGTeo4LGWJmK2sU1ya81Fl"><td data-page-node-id="QuaGrZ50kWlCnD3EyjhmDL"><b data-page-node-id="DcVmQxEFLlBm9AfqZtGY5m"><!--pnid:dXif4kjq35qgbN3nTcQP6c-->五·职业模式系统</b></td><td data-page-node-id="7E0oV8uZHW0PaCybCpJVpq"><span data-page-node-id="lDzjF3ZoIrCoqXcOnh0s3Z" class="c"><!--pnid:4qHIHxGjM2eDgZfyCSsq7C-->battle</span></td><td data-page-node-id="IeoSg3NFVeRKkPaESsVuAD"><!--pnid:jhO9PohEM3rdXlq4eUkaLK-->六边形地图、单位、作战、回合阶段推进</td></tr>
+                <tr data-page-node-id="tS0w0eqXX2h9X5KMlOR3Nl"><td data-page-node-id="uvKoIf1lKzAAqOGP0p4rRh"><b data-page-node-id="j4MfIgtS7QX44VnNpBbeou"><!--pnid:JDKcGPrftPT3LmgKRUcugF-->2.2 单位系统 / CF 公式</b></td><td data-page-node-id="0sOmaMSZqlKN4WI6Xsn4YT"><span data-page-node-id="8GSRyKifhYgT6YfnZm0NpP" class="c"><!--pnid:DytPms8yRK9fqEW5ZZP7K9-->unit</span></td><td data-page-node-id="YjOQkNNLZhNtgrePIWM6EG"><!--pnid:zgWi16uVf6ZLP3eqfQ4b9T-->七维属性 + 战斗力指数 CF 系数乘积</td></tr>
+                <tr data-page-node-id="ZNBMfQOCmHX65l7xABd9St"><td data-page-node-id="Y1pQzgciZD6TSnRJSSNMEo"><b data-page-node-id="mr6cqCSjhLAnhpRVDBCDBF"><!--pnid:YxovGU6HlU3MKZ0fa9ixgE-->2.4 后勤系统（护城河）</b></td><td data-page-node-id="osN7TDhbuFiyceS9yXY4Jg"><span data-page-node-id="5xWO7Wsqri0s4JspoV5kPu" class="c"><!--pnid:KikVdk8JuVwK3izBRdzvNt-->logistics</span></td><td data-page-node-id="6KGKCdZnSCtMMMr03ZM2a4"><!--pnid:Y7PrDmpTwLs47Z6K9PHtLw-->三类资源分离核算、补给线指数衰减 R</td></tr>
+                <tr data-page-node-id="jjGCthjca6zCyIRJhntdPD"><td data-page-node-id="TktQ0FfR2e6o2O9hB3dQwo"><b data-page-node-id="tG0vGmYPX31nwjcFc0iN7B"><!--pnid:UYwVq9YzU25STZEmGm9DYE-->2.6 指挥官系统</b></td><td data-page-node-id="DGlY7cYsAAeKLw1UsU8UEv"><span data-page-node-id="q0OF11FNrIJyRYY06k1SeJ" class="c"><!--pnid:OCfQvnuZXPD6nOC8abpUpH-->commander</span></td><td data-page-node-id="z8Uz2olOo7BTBFoHO4TqAV"><!--pnid:fZXn41yieQNwlS8mqDJqvu-->技能/特性/指挥半径、半径内加成</td></tr>
+                <tr data-page-node-id="J4LypVVtpghLHroPfYkd3B"><td data-page-node-id="2gyt09Ri2ApzZrBx5joome"><b data-page-node-id="JKtGCUeJg4nRlDUmqeL69B"><!--pnid:EYq5387cXuNRBT8sDkKT0A-->核心循环 / 战报</b></td><td data-page-node-id="6cGrXoGKZrKgiklu8J10G6"><span data-page-node-id="ta6geT7MsnSW52olSxuEEi" class="c"><!--pnid:HYBwQtErBNX029qtSJVwcR-->report</span></td><td data-page-node-id="QrHzCKn884qDj0lejIPCkt"><!--pnid:HhhLEUgzgdJ2H5Q2PaOkp8-->补给→机动→交战→损耗→补充 闭环呈现</td></tr>
+                <tr data-page-node-id="SLwbZYn4C8Hs7sApb5TbPJ"><td data-page-node-id="NMC746TzjCDIju58eSmBbB"><b data-page-node-id="HpUXm1GqMnQ2PbIJ2sPfkW"><!--pnid:Pn0WBCKONMeFS88iSfPqqv-->引导帮助 / 新手训练</b></td><td data-page-node-id="ZirPkaQe063kh2FHZNnoro"><span data-page-node-id="pn9WXaOvkbf4uWunuCjrDE" class="c"><!--pnid:YmDgGu4RGMT4uP1XSKMeZS-->tutorial</span></td><td data-page-node-id="eAx9JiiGRXp6daK1sSTsuT"><!--pnid:uClgBOIstZfsxBokrEdlF0-->6 步滑动引导：模式/操作/补给线/异步回合，末步进战役</td></tr>
+                <tr data-page-node-id="cKwr9kTQ2VZ4f6kAVH0MKc"><td data-page-node-id="NOQFYY6jEwC27wKvb9p4zM"><b data-page-node-id="6BRe8XUhtvDzKl30BqrahM"><!--pnid:dNOFuojEwgKK5tAf1SZPLt-->战报分析与分享（社交层）</b></td><td data-page-node-id="O8xxfeHJ5FxFeDQ22q5psL"><span data-page-node-id="fJ853dkrF4jBQjA9Y0Xnj8" class="c"><!--pnid:M2Xl6t4rTwgBOyfpf8y01f-->analysis</span></td><td data-page-node-id="if80YPJBk8OamdYVfxBVNp"><!--pnid:0nqjxUvEXpRcl8ReEwwo0w-->交换比/控制领土/兵种战果柱状图 + 可分享卡片</td></tr>
+                <tr data-page-node-id="XewzFhioQKA4d1eKGpllTG"><td data-page-node-id="3sCSdU1P2AoqmVosWUooDA"><b data-page-node-id="GZSzWs1adrI4nNfufa7MS3"><!--pnid:hMFiBDU9Ux07grvtNdfCEx-->④ UGC 剧本编辑器</b></td><td data-page-node-id="JZVMVQThiOHLtFGszDvQib"><span data-page-node-id="04sRwh5XhjZMpJtBwJzTj0" class="c"><!--pnid:wypq7mAECxzhYsPU4mWUjW-->editor</span></td><td data-page-node-id="Z8248oriMR53NvFuar3EmY"><!--pnid:84sYtRNRKuiuvV9IyZn06n-->地形/单位笔刷绘制 + 发布合规分级提示</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script data-page-node-id="XEgZjOV7kichYvWHb18VKa" data-pnid-children="YYYDzYIEBdjFTVbqP9ZJy6">
+/* ---------- navigation ---------- */
+const crumbMap={home:"主菜单",tutorial:"新手引导",modes:"模式选择",lobby:"副本大厅",detail:"副本详情",battle:"战斗主界面",unit:"单位面板",logistics:"后勤补给",commander:"指挥官",report:"战报结算",analysis:"战报分析",store:"军需商店",guild:"社交军团",rank:"战力排行",editor:"剧本编辑器",settings:"设置 · 防沉迷",spec:"设计说明"};
+const nav=document.getElementById('nav');
+const deviceWrap=document.getElementById('deviceWrap');
+const wideWrap=document.getElementById('wideWrap');
+const crumb=document.getElementById('crumb');
+
+function showScreen(name){
+  const btn=nav.querySelector(`[data-screen="${name}"]`);
+  const kind=btn?btn.dataset.kind:'device';
+  nav.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.screen===name));
+  if(kind==='device'){
+    deviceWrap.classList.remove('hidden'); wideWrap.classList.add('hidden');
+    document.querySelectorAll('.device .screen').forEach(s=>s.classList.toggle('active',s.dataset.screen===name));
+  }else{
+    deviceWrap.classList.add('hidden'); wideWrap.classList.remove('hidden');
+    wideWrap.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.dataset.screen===name));
+  }
+  crumb.textContent=crumbMap[name]||name;
+  document.getElementById('canvas').scrollTop=0;
+}
+nav.addEventListener('click',e=>{const b=e.target.closest('.navbtn');if(b)showScreen(b.dataset.screen);});
+
+/* in-screen jumps (data-go) */
+document.body.addEventListener('click',e=>{
+  const g=e.target.closest('[data-go]');
+  if(g){showScreen(g.dataset.go);}
+});
+
+/* filter chips demo */
+document.querySelectorAll('.filters .filter').forEach(f=>{
+  f.addEventListener('click',()=>{document.querySelectorAll('.filters .filter').forEach(x=>x.classList.remove('on'));f.classList.add('on');});
+});
+
+/* action bar toggle */
+document.querySelectorAll('.actionbar .ab:not(.end)').forEach(a=>{
+  a.addEventListener('click',()=>{document.querySelectorAll('.actionbar .ab:not(.end)').forEach(x=>x.classList.remove('on'));a.classList.add('on');});
+});
+
+/* ---------- hex map generator ---------- */
+function buildHexMap(svg,opts){
+  const s=18, cols=12, rows=11, sq=Math.sqrt(3);
+  const W=sq*s*(cols+0.4), H=s*1.5*(rows-1)+2*s;
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  const x0=s*sq, y0=s;
+  // terrain grid (r=row, q=col)
+  const T=[];
+  const palette={'.':'#16202e','f':'#15301f','m':'#2a2336','r':'#102a3d','c':'#222a3b','h':'#232a1d'};
+  for(let r=0;r<rows;r++){const row=[];for(let q=0;q<cols;q++){
+    let t='.';
+    if(q>=4&&q<=5&&r>1&&r<9) t='r';            // central river
+    else if(r<2&&q>6) t='m';                    // mountains top-right
+    else if((q===2&&r===8)||(q===9&&r===2)) t='f';
+    else if((q===7&&r===7)||(q===3&&r===3)||(q===10&&r===6)) t='c';
+    else if((q===1&&r===5)||(q===8&&r===9)) t='h';
+    row.push(t);
+  }T.push(row);}
+  const hexPts=(cx,cy)=>{let p=[];for(let i=0;i<6;i++){const a=Math.PI/180*(60*i-90);p.push((cx+s*Math.cos(a)).toFixed(1)+','+(cy+s*Math.sin(a)).toFixed(1));}return p.join(' ');};
+  function pos(q,r){return {x:x0+sq*s*q + (r%2?sq*s/2:0), y:y0+s*1.5*r};}
+  let html='';
+  // terrain
+  for(let r=0;r<rows;r++)for(let q=0;q<cols;q++){
+    const p=pos(q,r); const col=palette[T[r][q]];
+    html+=`<polygon class="hexcell" points="${hexPts(p.x,p.y)}" fill="${col}"/>`;
+  }
+  // supply line (depot -> front)
+  const depot=pos(1,9), front=pos(7,4);
+  html+=`<polyline class="supply-line" points="${depot.x},${depot.y} ${pos(3,8).x},${pos(3,8).y} ${pos(5,6).x},${pos(5,6).y} ${front.x},${front.y}"/>`;
+  // depot marker
+  html+=`<polygon points="${depot.x},${depot.y-s*0.6} ${depot.x+s*0.55},${depot.y+s*0.4} ${depot.x-s*0.55},${depot.y+s*0.4}" fill="#27E0C6" opacity="0.9"/>`;
+  // units  friendly (left) red? no friendly cyan
+  const units=[
+    {q:2,r:7,side:'f',t:'装'},{q:3,r:6,side:'f',t:'步'},{q:5,r:5,side:'f',t:'炮'},
+    {q:7,r:4,side:'f',t:'装'},{q:8,r:7,side:'f',t:'机'},
+    {q:9,r:3,side:'e',t:'装'},{q:10,r:5,side:'e',t:'步'},{q:8,r:2,side:'e',t:'炮'}
+  ];
+  units.forEach(u=>{
+    const p=pos(u.q,u.r); const c=u.side==='f'?'#27E0C6':'#FF5A65';
+    html+=`<g class="unit-tok" data-go="unit"><circle class="u" cx="${p.x}" cy="${p.y}" r="${s*0.62}" fill="#0b1320" stroke="${c}"/><text x="${p.x}" y="${p.y}" fill="${c}">${u.t}</text></g>`;
+  });
+  // selection ring on front friendly
+  const sf=pos(7,4);
+  html+=`<circle class="sel-ring" cx="${sf.x}" cy="${sf.y}" r="${s*0.8}"/>`;
+  svg.innerHTML=html;
+}
+buildHexMap(document.getElementById('battleMap'));
+
+/* mini map thumbnails for lobby/detail (static decorative) */
+function miniMap(el,base){
+  if(!el)return;
+  const s=9,cols=10,rows=7,sq=Math.sqrt(3);
+  const W=sq*s*(cols+0.3),H=s*1.5*(rows-1)+2*s;
+  el.style.background='#0c1420';
+  let svg=`<svg viewBox="0 0 ${W} ${H}" width="100%" height="100%" preserveAspectRatio="xMidYMid slice">`;
+  const pal=['#16202e','#15301f','#2a2336','#102a3d','#222a3b'];
+  function pos(q,r){return {x:s*sq+s*sq*q+(r%2?s*sq/2:0),y:s+s*1.5*r};}
+  const hexPts=(cx,cy)=>{let p=[];for(let i=0;i<6;i++){const a=Math.PI/180*(60*i-90);p.push((cx+s*Math.cos(a)).toFixed(1)+','+(cy+s*Math.sin(a)).toFixed(1));}return p.join(' ');};
+  for(let r=0;r<rows;r++)for(let q=0;q<cols;q++){
+    const p=pos(q,r);svg+=`<polygon points="${hexPts(p.x,p.y)}" fill="${pal[(q*3+r*7)%pal.length]}" stroke="#0a1018" stroke-width="0.6"/>`;
+  }
+  // a couple of unit dots
+  const u1=pos(3,4),u2=pos(7,3);
+  svg+=`<circle cx="${u1.x}" cy="${u1.y}" r="${s*0.5}" fill="#27E0C6" opacity="0.85"/><circle cx="${u2.x}" cy="${u2.y}" r="${s*0.5}" fill="#FF5A65" opacity="0.8"/>`;
+  svg+=`</svg>`;
+  el.innerHTML=svg;
+}
+['mapFeat','mapW','mapW1','mapR','mapL','mapK','mapDetail'].forEach(id=>miniMap(document.getElementById(id)));
+
+/* tab panes (store / rank) */
+document.querySelectorAll('.tabhost').forEach(host=>{
+  const tb=host.querySelector('.tabs'); if(!tb)return;
+  tb.addEventListener('click',e=>{
+    const t=e.target.closest('.tab'); if(!t)return;
+    const pane=t.dataset.pane;
+    tb.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t));
+    host.querySelectorAll('.tab-pane').forEach(p=>p.classList.toggle('on',p.dataset.pane===pane));
+  });
+});
+/* toggles (settings) */
+document.body.addEventListener('click',e=>{const tg=e.target.closest('.toggle');if(tg)tg.classList.toggle('on');});
+
+/* ---------- tutorial swipe ---------- */
+(function(){
+  const total=6, track=document.getElementById('tutTrack'),
+        dots=document.getElementById('tutDots'),
+        next=document.getElementById('tutNext'),
+        tt=document.querySelector('.tut .tt');
+  let step=0;
+  function render(){
+    track.style.transform=`translateX(-${step*(100/total)}%)`;
+    dots.querySelectorAll('.tut-dot').forEach((d,i)=>d.classList.toggle('on',i===step));
+    tt.textContent=`STEP ${step+1} / ${total}`;
+    next.textContent= step===total-1 ? '开始战役 ▶' : '下一步';
+  }
+  next.addEventListener('click',()=>{
+    if(step<total-1){step++;render();}
+    else{showScreen('battle');}
+  });
+  dots.querySelectorAll('.tut-dot').forEach((d,i)=>d.addEventListener('click',()=>{step=i;render();}));
+  render();
+})();
+
+/* ---------- scenario editor (UGC) ---------- */
+(function(){
+  const svg=document.getElementById('edMap'); if(!svg)return;
+  const cols=12, rows=9, s=20, sq=Math.sqrt(3);
+  const W=sq*s*(cols+0.4), H=s*1.5*(rows-1)+2*s;
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  const x0=s*sq, y0=s;
+  const hexPts=(cx,cy)=>{let p=[];for(let i=0;i<6;i++){const a=Math.PI/180*(60*i-90);p.push((cx+s*Math.cos(a)).toFixed(1)+','+(cy+s*Math.sin(a)).toFixed(1));}return p.join(' ');};
+  function pos(q,r){return {x:x0+sq*s*q+(r%2?sq*s/2:0), y:y0+s*1.5*r};}
+  const defFill='#16202e';
+  let cur={fill:defFill,label:'',color:defFill};
+  let html='';
+  for(let r=0;r<rows;r++)for(let q=0;q<cols;q++){
+    const p=pos(q,r);
+    html+=`<g class="edcell" data-q="${q}" data-r="${r}">`+
+          `<polygon class="ed-hex" points="${hexPts(p.x,p.y)}" fill="${defFill}" stroke="#0a1018" stroke-width="1"/>`+
+          `<text x="${p.x}" y="${p.y}" fill="#0a1018" font-size="10" font-family="monospace" text-anchor="middle" dominant-baseline="central"></text></g>`;
+  }
+  svg.innerHTML=html;
+  const tools=document.getElementById('edTools');
+  tools.addEventListener('click',e=>{
+    const t=e.target.closest('.ed-tool'); if(!t)return;
+    tools.querySelectorAll('.ed-tool').forEach(x=>x.classList.remove('on'));
+    t.classList.add('on');
+    cur={fill:t.dataset.fill,label:t.dataset.label,color:t.dataset.color};
+  });
+  svg.addEventListener('click',e=>{
+    const g=e.target.closest('.edcell'); if(!g)return;
+    const poly=g.querySelector('polygon');
+    const txt=g.querySelector('text');
+    if(cur.label){ // unit
+      poly.setAttribute('fill',cur.fill);
+      poly.setAttribute('stroke',cur.color);
+      poly.setAttribute('stroke-width','2');
+      txt.textContent=cur.label; txt.setAttribute('fill',cur.color);
+    }else{ // terrain / eraser
+      poly.setAttribute('fill',cur.fill);
+      poly.setAttribute('stroke','#0a1018');
+      poly.setAttribute('stroke-width','1');
+      txt.textContent=''; txt.setAttribute('fill','#0a1018');
+    }
+  });
+  // long-press / drag paint (simple drag support)
+  let painting=false;
+  svg.addEventListener('mousedown',()=>painting=true);
+  document.addEventListener('mouseup',()=>painting=false);
+  svg.addEventListener('mousemove',e=>{ if(painting&&e.target.closest){const g=e.target.closest('.edcell'); if(g) g.dispatchEvent(new MouseEvent('click',{bubbles:true}));}});
+  const pub=document.getElementById('edPublish');
+  const comp=document.getElementById('edComp');
+  pub.addEventListener('click',()=>comp.classList.add('on'));
+})();
+
+/* ---------- analysis share (demo) ---------- */
+document.getElementById('anShare')?.addEventListener('click',function(){
+  const b=this; const o=b.textContent; b.textContent='已复制链接 ✓';
+  setTimeout(()=>b.textContent=o,1400);
+});
+
+</script>
+</body>
+</html>

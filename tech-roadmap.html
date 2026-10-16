@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html data-page-node-id="lwMVGkgtovQezKzCornVhq" lang="zh-CN">
+<head data-page-node-id="ldJTss7BYC8ngPmXCu2iMe">
+<script data-page-node-id="olqyYcRg1hZ5LbpEMHZT0e" src="/page/page_comm/inject.js"></script>
+<meta data-page-node-id="4GAOgCtHgYERHZRhgwgjcm" charset="UTF-8">
+<meta data-page-node-id="96GmcEdb4oEK2HUMyemIcz" content="width=device-width, initial-scale=1.0" name="viewport">
+<title data-page-node-id="b4MnyV8Qrhkko4fr760bqw" data-pnid-children="e8JCE38QK6mJXnrY9w1nx7">铁幕兵棋 HEXFRONT · 产品技术路线图</title>
+<style data-page-node-id="GzLPl8M5TGtGB4IaezIrbp" data-pnid-children="Yw19B8gTIAuC7cvmsM2yjN">
+  :root{
+    --bg:#080B12; --bg-2:#0C111B; --surface:#121927; --surface-2:#172132;
+    --border:#223049; --border-soft:#1A2435;
+    --text:#E9EFF8; --dim:#93A1B8; --faint:#5C6B82;
+    --accent:#27E0C6; --accent-2:#3DA9FC; --gold:#F5B545;
+    --danger:#FF5A65; --good:#38D39F;
+    --font:-apple-system,"PingFang SC","Microsoft YaHei","Segoe UI",Roboto,sans-serif;
+    --mono:"SF Mono","JetBrains Mono",Consolas,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.7;
+    background-image:radial-gradient(1200px 600px at 80% -10%,rgba(39,224,198,.06),transparent 60%),
+                     radial-gradient(900px 500px at 0% 110%,rgba(61,169,252,.05),transparent 60%)}
+  .wrap{max-width:1080px;margin:0 auto;padding:48px 40px 80px}
+  .top{display:flex;align-items:center;gap:14px;margin-bottom:6px}
+  .top .hex{width:40px;height:44px;flex:0 0 40px}
+  h1{font-size:27px;font-weight:800;letter-spacing:1px}
+  h1 span{color:var(--accent)}
+  .sub{color:var(--faint);font-family:var(--mono);font-size:12px;letter-spacing:1px;margin-top:4px}
+  .lead{color:var(--dim);margin:18px 0 8px;max-width:820px;font-size:14px;line-height:1.9}
+  .sec{margin-top:42px}
+  .sec h2{font-size:18px;font-weight:700;color:var(--accent);letter-spacing:1px;margin-bottom:16px;
+    display:flex;align-items:center;gap:10px}
+  .sec h2::before{content:"";width:4px;height:18px;background:var(--accent);border-radius:2px}
+  .sec h3{font-size:14px;font-weight:600;color:var(--text);margin:16px 0 8px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .box{background:var(--surface);border:1px solid var(--border-soft);border-radius:14px;padding:16px}
+  .box h3{font-size:14px;margin:0 0 9px;color:var(--accent)}
+  .box p{font-size:12.5px;color:var(--dim);line-height:1.75}
+  .box ul{list-style:none;margin-top:6px}
+  .box li{font-size:12.5px;color:var(--dim);padding:4px 0 4px 16px;position:relative;line-height:1.7}
+  .box li::before{content:"";position:absolute;left:0;top:11px;width:6px;height:6px;border-radius:2px;background:var(--accent)}
+
+  /* architecture layers */
+  .arch{display:flex;flex-direction:column;gap:10px}
+  .layer{border:1px solid var(--border);border-radius:14px;padding:14px 16px;background:linear-gradient(180deg,#0e1622,#0b111b);position:relative}
+  .layer .lh{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .layer .lh .n{font-family:var(--mono);font-size:11px;color:var(--bg);background:var(--accent);padding:2px 8px;border-radius:20px;font-weight:700}
+  .layer .lh .t{font-weight:700;font-size:15px}
+  .layer .lh .d{font-size:11px;color:var(--faint);font-family:var(--mono);margin-left:auto}
+  .chips{display:flex;flex-wrap:wrap;gap:7px}
+  .chip{font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid var(--border);color:var(--dim);background:#152030}
+  .chip.acc{color:var(--accent);border-color:rgba(39,224,198,.35);background:rgba(39,224,198,.07)}
+  .chip.gold{color:var(--gold);border-color:rgba(245,181,69,.35);background:rgba(245,181,69,.07)}
+  .chip.blue{color:var(--accent-2);border-color:rgba(61,169,252,.3);background:rgba(61,169,252,.07)}
+
+  /* tech stack table */
+  table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:4px}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--border-soft)}
+  th{color:var(--faint);font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:1px}
+  td b{color:var(--text)}
+  td .mono{font-family:var(--mono);color:var(--accent);font-size:11.5px}
+
+  /* timeline */
+  .tlbar{display:flex;gap:6px;margin:8px 0 22px}
+  .tlseg{flex:1;height:42px;border-radius:8px;display:flex;flex-direction:column;justify-content:center;align-items:center;
+    font-size:11px;font-weight:700;color:var(--bg);position:relative}
+  .tlseg small{font-weight:500;font-size:9.5px;opacity:.8}
+  .seg0{background:linear-gradient(135deg,#27E0C6,#19b6a0)}
+  .seg1{background:linear-gradient(135deg,#3DA9FC,#2b7fc4)}
+  .seg2{background:linear-gradient(135deg,#F5B545,#d9952f);color:#241700}
+  .seg3{background:linear-gradient(135deg,#9b6bff,#6f44d6)}
+  .seg4{background:linear-gradient(135deg,#FF5A65,#b53a44);color:#fff}
+  .seg5{background:linear-gradient(135deg,#38D39F,#1f9c75)}
+
+  .phase{border:1px solid var(--border-soft);border-radius:14px;padding:0;margin-bottom:14px;overflow:hidden;background:var(--surface)}
+  .phase .ph{display:flex;align-items:center;gap:12px;padding:13px 16px;background:linear-gradient(135deg,rgba(39,224,198,.08),transparent);border-bottom:1px solid var(--border-soft)}
+  .phase .ph .tag{font-family:var(--mono);font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;background:rgba(39,224,198,.15);color:var(--accent)}
+  .phase .ph .nm{font-weight:700;font-size:15px}
+  .phase .ph .tm{margin-left:auto;font-size:11px;color:var(--faint);font-family:var(--mono)}
+  .phase .pb{display:grid;grid-template-columns:1fr 1fr;gap:0}
+  .phase .pb>div{padding:14px 16px}
+  .phase .pb>div:first-child{border-right:1px solid var(--border-soft)}
+  .phase .pb h4{font-size:11px;color:var(--faint);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+  .phase .pb p,.phase .pb li{font-size:12.5px;color:var(--dim);line-height:1.7}
+  .phase .pb ul{list-style:none;margin-left:0}
+  .phase .pb li{padding-left:16px;position:relative;margin:3px 0}
+  .phase .pb li::before{content:"";position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:2px;background:var(--accent)}
+  .kpi{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+  .kpi .k{font-size:11px;font-family:var(--mono);padding:3px 9px;border-radius:6px;background:#0c1420;border:1px solid var(--border-soft);color:var(--dim)}
+
+  .risk{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;background:var(--surface);border:1px solid var(--border-soft);border-radius:12px;margin-bottom:10px}
+  .risk .rv{font-family:var(--mono);font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;flex:0 0 auto}
+  .risk .rv.hi{background:rgba(255,90,101,.14);color:var(--danger)}
+  .risk .rv.mid{background:rgba(245,181,69,.14);color:var(--gold)}
+  .risk .rv.lo{background:rgba(56,211,159,.14);color:var(--good)}
+  .risk .rb{font-size:12.5px;color:var(--dim)}
+  .risk .rb b{color:var(--text)}
+
+  .note{font-size:11.5px;color:var(--faint);margin-top:10px;line-height:1.7;border-left:2px solid var(--border);padding-left:12px}
+  .footer{margin-top:48px;padding-top:18px;border-top:1px solid var(--border-soft);font-size:11px;color:var(--faint);font-family:var(--mono)}
+  @media (max-width:760px){.grid2,.grid3,.phase .pb{grid-template-columns:1fr}.phase .pb>div:first-child{border-right:none;border-bottom:1px solid var(--border-soft)}.wrap{padding:30px 18px 60px}}
+</style>
+</head>
+<body data-page-node-id="bup8Qvlxc68pXfZkmUCX9n">
+<div data-page-node-id="DF2eBqxewx5iSbk0sLhi6A" class="wrap">
+
+  <div data-page-node-id="qf3oGW8wHixGgpMk2H2Jib" class="top">
+    <svg data-page-node-id="soYIhMYdS6TYZgiz7TvrrZ" class="hex" viewBox="0 0 34 38"><polygon data-page-node-id="bv8yd1fIQRNehA0tfsENOt" fill="none" points="17,1 32,9.5 32,28.5 17,37 2,28.5 2,9.5" stroke="#27E0C6" stroke-width="2"/><polygon data-page-node-id="1hsizY8jVTopeH56ornpaN" fill="rgba(39,224,198,.18)" points="17,9 26,14 26,24 17,29 8,24 8,14" stroke="#27E0C6" stroke-width="1.4"/><circle data-page-node-id="oYk1ZHOfWcSMfYgoPFuNRV" cx="17" cy="19" fill="#27E0C6" r="3"/></svg>
+    <div data-page-node-id="bu54ovhe88rZ4LcHloLwa0">
+      <h1 data-page-node-id="eMkRJg4eON4q1e2E47Mxoe"><!--pnid:yLi8RzXxW63uqB0gCEUYqu-->铁幕兵棋 <span data-page-node-id="tNIZ1GUWykJxIHvjIcJTTJ"><!--pnid:asDvuJy2zNyKIebh1B031i-->HEXFRONT</span></h1>
+      <div data-page-node-id="oPr9kwPKngzISyjzJbvpQM" class="sub"><!--pnid:fEwsbemNsHQed70JQgBb4q-->PRODUCT TECHNICAL ROADMAP · v0.1 · 对齐《产品设计文档 v1.0》</div>
+    </div>
+  </div>
+
+  <p data-page-node-id="mtV6DGj4gHq7eC7A5hBL62" class="lead"><!--pnid:Nh9RsdDqZ4qPlImMlUepo2-->本路线图以设计文档的<b data-page-node-id="MMrtbicLfbhksNBYtDpXsc" style="color:var(--text)"><!--pnid:pN5dmZJkObLbuwpsSUlC0g-->「统一兵棋引擎」</b><!--pnid:hUWeXzZX6hhqrlSIPQZxkz-->为核心，沿<b data-page-node-id="2mnkJFMtzhHcuOPqQQ1v4y" style="color:var(--text)"><!--pnid:vjUG1vBZUNkAGFbKqu6X8i-->四大支柱（引擎层 / 内容副本层 / 移动平台层 / 商业·社交层）</b><!--pnid:Dz8PuCkzcpkv8M6yqeWjQN-->展开技术架构，并以<b data-page-node-id="Y2ulsx8L1h3X990xpztbne" style="color:var(--text)"><!--pnid:LWov1HsLl1fCrohYpjXnKp-->MVP → 职业完整化 → 商业发布 → 专业模式 → UGC/娱乐 → 智能化运营</b><!--pnid:gPsZTDqEtp6h0zyhFdpJQ4-->的分阶段节奏落地。所有技术选型均为建议，落地时以团队现状与成本为准。</p>
+
+  <!--pnid:tS556uI8IyMMFK2WAOVyIM--><!-- ========== 原则 ========== -->
+  <div data-page-node-id="IjygTE97CPa1K7W7ph5fYn" class="sec">
+    <h2 data-page-node-id="MpqwMyAkwR7pQg1uEw7I6u"><!--pnid:5XWPD0KyjQErm7BQrbb28G-->一 · 技术愿景与设计原则</h2>
+    <div data-page-node-id="9vnJMDhNk2ug1Wvv74PBUZ" class="grid3">
+      <div data-page-node-id="QcEwZ1f9dB3HvBdxyBzlVF" class="box"><h3 data-page-node-id="NenwsKdBHAFVALMN9D7lxP"><!--pnid:ZvbMWEzymWzyrQd2LmaOjf-->一套内核，多模式分层</h3><p data-page-node-id="eIRWNhpdrcz8j4jIkQ4HhE"><!--pnid:RVPqZ3MCNDw1ITJ2R5auSx-->仿真内核与表现层解耦；职业/专业/娱乐三模式共用内核，仅由「规则开关 · 信息密度 · AI 强度 · 单局时长」四杠杆差异化，避免维护多套代码。内核以 Dart 实现，<b data-page-node-id="qmTqxDWgl6N9dTkDV2jEvp"><!--pnid:iv5wZx2onvf485HUrxuoqH-->两端可运行</b><!--pnid:aBB9nsIXfxOlX7dLnPsBhg-->：客户端内即时预览与 UGC 沙盒就地校验，服务端跑权威异步结算；UGC 编辑器天然内建推演校验。</p></div>
+      <div data-page-node-id="2mYjF4dlLGeEOMdM2Cg2aK" class="box"><h3 data-page-node-id="jDWwrRMNp9HF0ybri3e1gb"><!--pnid:CLsBQXN3StQ4woYWoizIYX-->确定性 & 可回放</h3><p data-page-node-id="1xcc6EiPuvLZY2a2fPCpFK"><!--pnid:jD9iasTi3cqmOZtWuBqBhq-->战斗采用确定性仿真（固定步长 + 种子），保证多端一致、战报可回放、对拍可自动化，是公平性与异步回合的底座。</p></div>
+      <div data-page-node-id="tLqTjKB3z9Qy7BouTkzvS0" class="box"><h3 data-page-node-id="RLR7zhNsNMzrnkenBu5PIB"><!--pnid:cDsmdpJTkJ5pz1jIqKzdMR-->合规内建（by Design）</h3><p data-page-node-id="3p9yBQD3lsqj8XUOi2nS5k"><!--pnid:geCktyMKJE3vZWLJ1VPkPA-->题材敏感度分级、内容审核、防沉迷在架构与流程中前置，而非事后补丁；高敏感题材（抗战/解放/援朝等）隔离评估。</p></div>
+      <div data-page-node-id="CMx5Q8B3h97Ghl4oVKhABx" class="box"><h3 data-page-node-id="w4J4TuM5povPZoSEtKhFCW"><!--pnid:Q7PoUSLIYrcRVgGmnCa71u-->移动优先 · 性能优先</h3><p data-page-node-id="qpRTaI2iwxXYSXQJmB0E1U"><!--pnid:kHNG0F6YgTz4DGLHUWo0GC-->以中低端机为性能基线：LOD 聚合、情境操作条、信息降噪；启动时间、帧率、崩溃率纳入发布门禁。</p></div>
+      <div data-page-node-id="YCy0AAzccxwDugSaoX9i8j" class="box"><h3 data-page-node-id="2KicdShavYWsq6SXBrENkT"><!--pnid:wpFc30FDHcwnQl0TDPuQg7-->数据驱动平衡</h3><p data-page-node-id="en2DrxHArfCoGxgydUGRIV"><!--pnid:1yy9QI1REwsS4O2XC5RfuM-->CF 系数、损耗模型、AI 权重外置为数值表，支持热更与 A/B；运营与平衡团队可直接调参，无需发版。</p></div>
+      <div data-page-node-id="ez1mNrYOnr6AYDR8ZLBs2G" class="box"><h3 data-page-node-id="OiVln0FjZeKlcSf61Osgaj"><!--pnid:j1AlBWiJgoplbNaQSIqzBw-->异步即服务</h3><p data-page-node-id="VTqdxJ9ZLnOtaDp1tq9IFh"><!--pnid:sBmUro0UFX5TWiMAvorU21-->回合推进与结算上云，客户端只负责呈现与输入；天然支撑碎片时间推演与推送通知。</p></div>
+    </div>
+  </div>
+
+  <!--pnid:IZJ9Afs1rquJ9LqyXJrbqN--><!-- ========== 架构 ========== -->
+  <div data-page-node-id="RoAf8LFRif5K4mk3iF3an5" class="sec">
+    <h2 data-page-node-id="1zhpd2kYKZmiHdhZizUAzL"><!--pnid:sKsyYLcd7qL1suB5E7DUdS-->二 · 系统技术架构（对齐四大支柱）</h2>
+    <div data-page-node-id="soPuqwbproT7Cpaep2thY8" class="arch">
+      <div data-page-node-id="21vRpl6dqDxVXvm9RPCkAo" class="layer">
+        <div data-page-node-id="gpWtrJsRGZmOkx7oJ1iNnK" class="lh"><span data-page-node-id="rEF9IrSnlxyQ7my7eJ6ZNd" class="n"><!--pnid:ss4j2ZHQCtmueU3NCzcaiO-->①</span><span data-page-node-id="LtfjI04qTfyvw05Ntnwoq5" class="t"><!--pnid:6dO9nU9jj6g4SRkjTJp5eN-->统一引擎层</span><span data-page-node-id="aNrFcwgHRK3nBtPKiF3G2M" class="d"><!--pnid:kaJJyOjxCdkuKVMZGVxFuX-->client-agnostic core</span></div>
+        <div data-page-node-id="VU0qcsJLYmxiOplit5dUDk" class="chips">
+          <span data-page-node-id="yBaCzYGHatuqCmcezh3RfT" class="chip acc"><!--pnid:ICtYkgEUuWr8fhkCmGH3tJ-->六边形网格引擎</span><span data-page-node-id="oOZZJHpUz7ac43E1IuXPRP" class="chip acc"><!--pnid:B5vi7Dc90tNxHJ4N9hYhku-->单位 / 状态机</span><span data-page-node-id="MUwF9SUkqpB6U9yVbjynTF" class="chip acc"><!--pnid:NkKdygdKeXjs6LJ7o6pXwr-->作战解析器</span>
+          <span data-page-node-id="tPwUGbKd8eNHYxfHEHaLk3" class="chip acc"><!--pnid:QjgfUG24gWeaT3CxbhuUrz-->后勤 · 补给线解算</span><span data-page-node-id="V2iyCqFz5PD4tda8JOEIYX" class="chip acc"><!--pnid:VQ1Pd5Nysp1FV7mIDM6cou-->指挥官 / 士气 / 疲劳</span><span data-page-node-id="wokMZDuf887tau5M2Ur23W" class="chip acc"><!--pnid:7AdBaSMogf3In8ysSe7fv0-->回合调度器</span>
+          <span data-page-node-id="n7zKFqZzngQeoN94t0Ox3n" class="chip"><!--pnid:hHjyOhHs03QLs8zwdBuBjM-->规则开关层（Mode Layer）</span><span data-page-node-id="oDqB8KpmXgLPZuNVpbgoHK" class="chip"><!--pnid:t5vTMGMAjsPh3pH4L1LMTZ-->AI 决策（效用 / 行为树 / 搜索）</span>
+        </div>
+      </div>
+      <div data-page-node-id="Fre6wpYfBf1sSw6TZjypNT" class="layer">
+        <div data-page-node-id="dSBbCYFEA9kONL46ihMxAS" class="lh"><span data-page-node-id="EKaZ7h3WuYtEQNa9fc5ARR" class="n"><!--pnid:DH2wTrt95gERMTeCx1YTLC-->②</span><span data-page-node-id="hUQobUOtvfzWGgeO9O3mtl" class="t"><!--pnid:l5yuPmomMe59U9967hD2eA-->内容副本层</span><span data-page-node-id="O1Zt94WAhjRy2Gi0W23cpu" class="d"><!--pnid:6u40aCJbqvOF2I4rMeOdO9-->data pipeline</span></div>
+        <div data-page-node-id="bS2Fu2f7Jvl0nFeJYqIlRB" class="chips">
+          <span data-page-node-id="sjxFduNzz70bt9LxrQ0vlC" class="chip gold"><!--pnid:6Zth8FuKBSnWASbVhS61qE-->副本 DAG 剧本格式</span><span data-page-node-id="KNQh3Xgf4YGyZ5c7AO55fK" class="chip gold"><!--pnid:fJxcuuhwB0QtJgxsvA4DtF-->地图 / 单位 / 涂装资产配置</span><span data-page-node-id="JtLnEFm9ZZWAuC5ZeOfHeB" class="chip gold"><!--pnid:kaz02dUiYPV4I8jhhmrStL-->数值平衡表（CF 系数外置）</span>
+          <span data-page-node-id="yJgJbP4Fns85fimvkVmvnv" class="chip"><!--pnid:DBPF7dnqZi11UfbGFiba5n-->合规敏感度分级服务</span><span data-page-node-id="2d9JTh4TtBHfbEY9sUy7tU" class="chip"><!--pnid:ZOFMoWQz6O34K6ur4IgjZA-->内容版本与灰度下发</span>
+        </div>
+      </div>
+      <div data-page-node-id="sFmEjzJBFbS872wBRlwd7K" class="layer">
+        <div data-page-node-id="UO8XmYLgjJz52XoWMkoTb4" class="lh"><span data-page-node-id="tZjWihbJTLr28XaBdHmTJG" class="n"><!--pnid:fzdAPsy3z80UZUwiUu3wX6-->③</span><span data-page-node-id="5fbjVzqrl8mJHnyiBwH3qE" class="t"><!--pnid:J5V8lknUnd5SgxrM2RjrFg-->移动平台层（iOS / Android）</span><span data-page-node-id="2vK72eUEroxvqazaQlIjgE" class="d"><!--pnid:pzt38eVePhUkDXuAsvCjJm-->mobile only</span></div>
+        <div data-page-node-id="1psPT4enwsRHk2gyddewUV" class="chips">
+          <span data-page-node-id="NJkoAxkdwm0t3jTqF6lvJt" class="chip blue"><!--pnid:QPIVbPb0irsFjE7p8TZxWb-->Flutter 客户端</span><span data-page-node-id="jiF4zeCibCDaQcpwO3ouDH" class="chip blue"><!--pnid:GEqiqZ57ckm4MTb4tNGEN3-->六边形渲染 / 2.5D（CustomPainter · three_dart）</span><span data-page-node-id="dSzyOxtt3WaNlfPYJuE6Dz" class="chip blue"><!--pnid:KsRrgpg8tRDDSxZeR7kfXD-->情境操作条 UI</span>
+          <span data-page-node-id="oDKFYidzSxs0FMwZrYUaOK" class="chip blue"><!--pnid:bPUm6RwRJQEVYS4y7gw8LF-->云存档（OSS）</span><span data-page-node-id="VXIfi0HBLciBdSbtBHe40z" class="chip blue"><!--pnid:VD83LKyGnuJAEmpP8N7aUH-->推送（APNs / FCM）</span><span data-page-node-id="ehNSgQPFDxMMpieyDSiiDu" class="chip blue"><!--pnid:lbvhzbIvJ5Kamq9ga0zCf5-->异步回合客户端</span>
+        </div>
+      </div>
+      <div data-page-node-id="9BRXlr6b83Vg5jszf2Uhb6" class="layer">
+        <div data-page-node-id="aZKvC2bTIFofXmxiZ9yPOE" class="lh"><span data-page-node-id="jMIBlP6ZHE3vG6nBjeTALL" class="n"><!--pnid:utXzOFISb9MMoeiCgA1Uw9-->④</span><span data-page-node-id="vtRaHx0jYDFLMQxrqiqRih" class="t"><!--pnid:OgyyozAj7D2ixblEJVclww-->商业 · 社交层</span><span data-page-node-id="ab05MtTteARKOk4KibsXZ7" class="d"><!--pnid:u5l7DtqvDXyA4M0zPGGm1r-->services</span></div>
+        <div data-page-node-id="PlLvC650bwcLzi5gj3fkn2" class="chips">
+          <span data-page-node-id="OpxFvJcOMDvbhItFbJ3yLx" class="chip"><!--pnid:FffAJHnPt7TC2ISNI3hAXe-->账号 / 统一登录</span><span data-page-node-id="NtFHTUqiSPel2fymhtFZLZ" class="chip"><!--pnid:s3k2LbMUMD0GBp5XNVzcmO-->支付 / 内购（副本·外观，禁 pay-to-win）</span><span data-page-node-id="HrbP63msON0wZcs4ldFD1Q" class="chip"><!--pnid:g5Jsr8JZBkowAuYu2A9eDg-->公会 / 排行榜服务</span>
+          <span data-page-node-id="pAxFcfWISbNkOgARfWbYc9" class="chip"><!--pnid:tumv4jWt4ymxuP6kLKmCti-->UGC 剧本编辑器 + 审核管线</span><span data-page-node-id="IxLKZJnF48EzDfThaINdc2" class="chip"><!--pnid:bI0jhdoe0ap3Th1u333nVM-->运营后台 / 数据埋点</span><span data-page-node-id="7AipxxtzKQVAFuKHIE39oB" class="chip"><!--pnid:ASq48159GOcbPXJfEaEbVr-->防沉迷合规</span>
+        </div>
+      </div>
+    </div>
+    <p data-page-node-id="tvO8KX3HFzFuXO3w53r7LI" class="note"><!--pnid:glFJaxvQPMTQ5puO2K97Hd-->依赖方向自上而下：④ 调用 ③/② 的服务与资源；② 基于 ① 的仿真内核产出内容；① 是全部模式与副本的复用底座。仿真内核须最先稳定，否则将阻塞后续所有阶段。</p>
+  </div>
+
+  <!--pnid:1eaPjQDYf6zUUlv6hPF1Fi--><!-- ========== 技术栈 ========== -->
+  <div data-page-node-id="JcwLzfSydTtOK0kI3fj1c5" class="sec">
+    <h2 data-page-node-id="oahRPG707oGCDfMoaDl93N"><!--pnid:jM04hsm78rNKS0Zs0q23aj-->三 · 推荐技术栈（建议）</h2>
+    <table data-page-node-id="elKY14lfP3dN3cdUusYsGG">
+      <thead data-page-node-id="CBVaXmbSNcrE4wKTQkIYNM"><tr data-page-node-id="OKrZDBmdPdpVTmNfQukDOU"><th data-page-node-id="s5wk5YPLAWeeqGu6r80plI"><!--pnid:ZPN8WcluRb06DvAIhX7K9f-->分层</th><th data-page-node-id="USoGa3KqeHLJucDhz65LsS"><!--pnid:HJ6OJYvlf2IHF3QoNmga7O-->选型建议</th><th data-page-node-id="KNFRNPMsMNGCvJ5pblAgAh"><!--pnid:YAKXWpXRyU9QqgmY8yseu6-->说明</th></tr></thead>
+      <tbody data-page-node-id="0un4OlYS8ob02PANN1KCgO">
+        <tr data-page-node-id="2tdoyBhoWZDiyE7WIqnuGu"><td data-page-node-id="LLcAaRuZURh1EpHOu7ULGt"><b data-page-node-id="O2xebiDkaax5rTKOsja57b"><!--pnid:yGzG3p9NQFLFKVMJjd3weg-->仿真内核</b></td><td data-page-node-id="Kz8oqbXqMGfDR6OiNat5g0" class="mono"><!--pnid:d0jfpzHNh4DGOxriCJWOEI-->Dart 纯逻辑内核 / Rust 晋级路径</td><td data-page-node-id="XboDJCSmu4uk6Ps5Qn5ATS"><!--pnid:LAAe60TcxKZUMTcd7p3V0H-->与 Flutter 同语言、零 FFI；客户端内可直接运行（离线预览 + UGC 沙盒校验），服务端以 Dart VM / 编译产物跑权威异步结算；确定性靠纪律（固定步长 + 种子 RNG + 显式有序容器）；热点模块（后勤解算 / 搜索）未来下沉 Rust 经 dart:ffi 调用</td></tr>
+        <tr data-page-node-id="hegoInGNMupivyvs1QwbXd"><td data-page-node-id="W3jqSnDOMe3Cj4CqVoeD4n"><b data-page-node-id="TcTBA91VHyp3RnaObevidV"><!--pnid:Xv8T3qJJGREgwlSYg9RKxT-->客户端</b></td><td data-page-node-id="zqSLNLOGunvXVzQcWa8Y8l" class="mono"><!--pnid:hWvh55HqdTgbvbQUUZFY71-->Flutter（跨 iOS/Android）</td><td data-page-node-id="lvLJ5B60lR4Ri6YYjUM6Yf"><!--pnid:KDj2eXk3JIO0Z1Xwwqnkfg-->移动端优先；菜单 / 商店 / 军团 / 战报 / 编辑器以 Widget 实现，战斗 2.5D 轻 3D 走 CustomPainter 轴测投影或 three_dart；性能敏感处用 Skia 原生通道</td></tr>
+        <tr data-page-node-id="oMUvVjxzZVEGgOwFT6KpbY"><td data-page-node-id="dljwSTkrsCoQbeUfaJHLNb"><b data-page-node-id="6ze5XD9ff2rXavQ6huxIxh"><!--pnid:R8A1t4uDRTHG60F9Jq9lbV-->服务端</b></td><td data-page-node-id="X5H1klvscWovNTiCOIhOJ8" class="mono"><!--pnid:YRqQSDLsbMHa2VldKAxgSQ-->Go 微服务 + gRPC/WS</td><td data-page-node-id="jMtHLKT2XunQjCcuhBl6w4"><!--pnid:CmenLF4DVBwmDcDjC5LUNc-->网关 / 账号 / 对局 / 异步回合 / 云存档 / 社交 / 支付 / 运营；PostgreSQL + Redis；OSS 存云存档</td></tr>
+        <tr data-page-node-id="HNVUqXQyK2O7FHEj27sfbS"><td data-page-node-id="Yyz4gYvgKWV1jOkGVaUNZb"><b data-page-node-id="qJBS8qcuMc5h6ULLOp4Zil"><!--pnid:5cfTdwmRNCrxJ2n3447xeS-->AI</b></td><td data-page-node-id="b8EoStGyU8ZVNg74dHvxVN" class="mono"><!--pnid:Y1VzLdtXvg2NCMQK5nEo2Z-->Utility AI + BT + 搜索</td><td data-page-node-id="Sd6ZZ88hGyAHc7gyvT9uBj"><!--pnid:Yg5WPIV5AVKOUvEeOXJngr-->职业模式用效用 AI/行为树；难度由规则开关 + 搜索深度（Greedy→MCTS）控制；V3 探索 ML 对手</td></tr>
+        <tr data-page-node-id="0909JDuqo72Ezf66eTg8bY"><td data-page-node-id="lE3Rr1b0JHWE7eW3lDiwck"><b data-page-node-id="8nFu0V6zKKuntSe0dKTIpr"><!--pnid:7G4uR9wyp4Ik9nPgyoRilr-->异步回合</b></td><td data-page-node-id="G6TC0MW6HLCH6W1Nod6827" class="mono"><!--pnid:oROVeiDwpQLdBtxmjqA1cU-->Event Sourcing</td><td data-page-node-id="HzBjrTOdaZjrlbuWBzUaMk"><!--pnid:fXZ8J6sDW8TnAS4RzVercK-->指令流落库 + 云端确定性重算，支持冲突解决与离线推进</td></tr>
+        <tr data-page-node-id="nPZCYMaxWIrjOSlCGGnIJC"><td data-page-node-id="lGuSVsIvm6L9LIt0iDE5ud"><b data-page-node-id="hFdnDUki13PmAN5ntT1uAi"><!--pnid:AalPqEHfd1QIIze2Lh9R7Z-->工具链</b></td><td data-page-node-id="9orucAmBBBsYloXJiph4DK" class="mono"><!--pnid:BPvOBkeILxSbkxGtbVhpKo-->DAG 编辑器 + 数值表 + UGC</td><td data-page-node-id="f6t9GvFWos77eLjoywo6yq"><!--pnid:caNNQZSjdC0DWo9itI2lI5-->副本剧本编辑器、平衡数值热更、UGC 编辑器、合规分级标签系统</td></tr>
+        <tr data-page-node-id="eMtDfdvFm9iM4Bba5x9K3d"><td data-page-node-id="QTn8s5R3B2KJ3MFTPM4rsE"><b data-page-node-id="0qA5S2N7nfKcoC7HtIFkjs"><!--pnid:gFsf5pmUzgZOgVjs57WttE-->DevOps</b></td><td data-page-node-id="4iqoZ5ozITB0HvEAaPVCJP" class="mono"><!--pnid:ba6ozsnb32EOsWxPIDKewF-->CI/CD + 回放对拍</td><td data-page-node-id="Tc6USYP0FEqbOxRIh9U3ML"><!--pnid:9NwlIEi8M6Cx2oHmt5NecW-->双周迭代；内核单测 + 自动对拍 + 灰度/AB；崩溃/帧率/埋点监控</td></tr>
+        <tr data-page-node-id="31XKay7pqVyHWwLMv0LpJR"><td data-page-node-id="1L3lysUr1ziY4zaF8tVTFg"><b data-page-node-id="UUYDVSr5bAB83JqdOHC19E"><!--pnid:BCckzefesBsdAvGOkdsUjl-->合规</b></td><td data-page-node-id="QkjfRFhcBLabqpS1Qqzq7h" class="mono"><!--pnid:79eAS2dyyXVTCzjCCByPYc-->分级服务 + 审核后台</td><td data-page-node-id="YMN7XPwE4OIqYJLYp0Xe0z"><!--pnid:P8v5K5Np4U8m4G6a6MUmHq-->题材敏感度标签库 + 自动化初筛 + 人工复核；防沉迷接入实名与时长</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!--pnid:VduZMe7nlNQrxoDjvr6G8P--><!-- ========== 阶段路线 ========== -->
+  <div data-page-node-id="1s45AunQLbf2xTfGGvYIzC" class="sec">
+    <h2 data-page-node-id="hL4rQOurxkI2MibtIo2dYG"><!--pnid:IZjmMq4NSohPmyzsMS6eXk-->四 · 分阶段技术路线</h2>
+    <div data-page-node-id="lmlJS4kBvpPA5meEjFMjhr" class="tlbar">
+      <div data-page-node-id="nBYH4SZJGDXBNL52S3yUgz" class="tlseg seg0"><!--pnid:hss7GVLITx2ui3t2YmUcBd-->P0<small data-page-node-id="Cz4A6yV2SYJUbXORSPW2Q1"><!--pnid:amc5BP2qCLumKpDOGJUzxh-->技术地基</small></div>
+      <div data-page-node-id="xEAWfLJxQbD68MKzyAfTKM" class="tlseg seg1"><!--pnid:aSpdgbAaRUgNUEtgRT05rr-->P1<small data-page-node-id="wZMpveIH2pjSoLmL9Ssp01"><!--pnid:XBY8PzNA5yz7Cy6Vb3kpzW-->职业完整</small></div>
+      <div data-page-node-id="ZSNuVAmiGS1H7cMKIj6KBZ" class="tlseg seg2"><!--pnid:B1kRfgb35KGAanrqCGN0If-->P2<small data-page-node-id="6jKm2zlRBCc9yMfkTh9oFW"><!--pnid:wByXIsujZZANKz0NaehCt6-->商业发布</small></div>
+      <div data-page-node-id="ipZ50RaREPV7xKimVU5lqT" class="tlseg seg3"><!--pnid:YVdKXpVe4T0UMqzUIlMedJ-->P3<small data-page-node-id="8OcHUCUJYfIB1VVv9qCnf6"><!--pnid:x8WwivDmYWrbjUK9DZp1Sq-->专业 V2</small></div>
+      <div data-page-node-id="JDTOujc8H4TGVD1yMMa1MU" class="tlseg seg4"><!--pnid:JcdTFpvQ9H9063pNhabVqq-->P4<small data-page-node-id="ZRas4UlVhSkhUxg1lfXEpY"><!--pnid:nSQz9ukzZd1dv7BfVRu9I2-->UGC/娱乐</small></div>
+      <div data-page-node-id="MxjZCNor9owZBNraWMF4MM" class="tlseg seg5"><!--pnid:iXw7ifGBjRDc5OFeVFVjGN-->P5<small data-page-node-id="dqfkRBLEUxxPUuhaOPgzbZ"><!--pnid:AdYfOuxmOw1p4JLgrdRvqT-->智能运营</small></div>
+    </div>
+
+    <!--pnid:cgvusiV8Lxq67E9ZKCjJpK--><!-- P0 -->
+    <div data-page-node-id="u7PFJfi0AMSfPcgK9BeaSI" class="phase">
+      <div data-page-node-id="f5nEoxZ8FRpLmsssP8anES" class="ph"><span data-page-node-id="OdhnRjpzdy1nRDgQWP0G6T" class="tag"><!--pnid:3FdV2oqNhsHxC6Tpa2K7LT-->P0</span><span data-page-node-id="DtKCF09pBeOkEzLFKgYQSU" class="nm"><!--pnid:ZHJjWQzmEs2j746c9GjE3S-->技术地基 · MVP 前置</span><span data-page-node-id="DfFhhb8QBTIADuVpPA9Duq" class="tm"><!--pnid:RolHIOAeJosVoDGCr6vEpV-->M1 – M4</span></div>
+      <div data-page-node-id="HUBvo1J0qP2NakBfc4yyJ3" class="pb">
+        <div data-page-node-id="5oWfITPJ7QTs8bmWpkt9qC">
+          <h4 data-page-node-id="0ajcPMne2se8IQBJ0aONhi"><!--pnid:bB50N5RceuiREBUw0MmRGJ-->目标</h4>
+          <p data-page-node-id="cYDmqG7txb59cOTLyuv9HU"><!--pnid:lI2khcCmDEJZEoeKPUilSp-->验证「统一内核 + 移动端垂直切片」可行性，打通最小可玩闭环。</p>
+          <ul data-page-node-id="n0fRlPgPX5h8nIB5wWdPVZ">
+            <li data-page-node-id="PXtQkZwJIYPysjB3pAET2k"><!--pnid:gSwjuAwhO5WWd9I7grGUw9-->六边形网格引擎 + 单位 + 作战 + 回合调度（确定性）</li>
+            <li data-page-node-id="IKJnCxOT34MTqARpzQGNF8"><!--pnid:SgLbpf7TB7XmP7UQB30ioR-->职业模式垂直切片（单副本可推演）</li>
+            <li data-page-node-id="Ht9RrUvyQ4vQTt29qHFXjd"><!--pnid:hYeUeSgNbTiOudflYVgtH7-->二战东线 1 个副本（DAG 剧本 + 资源配置）</li>
+            <li data-page-node-id="qiZZ8T93rSmq523nmCE7hQ"><!--pnid:XokojZCY7OmHBjr2VQi2VK-->移动端骨架 + 云存档 + 合规分级框架</li>
+          </ul>
+        </div>
+        <div data-page-node-id="4rpMRmK43tXPGFz4m1PwSh">
+          <h4 data-page-node-id="UPEk6Ogs3tryXMCGq1Bgu6"><!--pnid:tP1IyGNezKogyfPPyQhEUK-->退出标准 / 风险</h4>
+          <ul data-page-node-id="Jjs4jTRRfbxsqpRVtwKJJn">
+            <li data-page-node-id="Pxf2oAx38lnhdagdQL8o4A"><!--pnid:2YHVH8EgZxZ8AnO0TyFRCW-->单局可在手机端确定性跑通，回放一致</li>
+            <li data-page-node-id="CFaelWSnnffsUAxQDQp2a8"><!--pnid:n3LHh3myyCbVDSz22OTmNv-->云存档往返正确，断点可续玩</li>
+            <li data-page-node-id="iSulkvMUh4IlLrYe2Oasp0"><!--pnid:MtrRwxXpx60HvbMbVaG5Di-->高敏感题材在管线层即被标记隔离</li>
+          </ul>
+          <div data-page-node-id="qaHvxMCnGbb0isjbRH9tlx" class="kpi"><span data-page-node-id="hqCkozKwEkKOvy8Xy3nz5E" class="k"><!--pnid:b1JmwZ8EJbSlGS10iWeBjM-->帧率≥30（中端机）</span><span data-page-node-id="4GxAr6kxZOtzX4qZbKYDXi" class="k"><!--pnid:CsWLwOT1vHX4IEhs5jdbUg-->启动≤4s</span><span data-page-node-id="Ajjyy2ibduXvCBxb8L8aMt" class="k"><!--pnid:6dGOxvMMrqDpfWF6RjNoxl-->崩溃率＜1%</span></div>
+          <p data-page-node-id="jclH1TzWABJGJTuMs0FJtk" style="margin-top:8px; color:var(--danger); font-size:12px"><!--pnid:gEYkP5erFgBhcfu20QDHM5-->⚠ 内核若延期将阻塞所有后续阶段，优先级最高。</p>
+        </div>
+      </div>
+    </div>
+
+    <!--pnid:RooOnknmSwPc6HShYAXDty--><!-- P1 -->
+    <div data-page-node-id="JYQmgXQTuR3l9o5q4inrMc" class="phase">
+      <div data-page-node-id="e7F5nf9gqZrv5sj8bGzLxO" class="ph"><span data-page-node-id="mMuTSxU8kC97QfzgmDnLWp" class="tag"><!--pnid:d4IBRd6wvqNEfO6FmFUq6p-->P1</span><span data-page-node-id="FiFA7oXjD8ub8go9luwzqq" class="nm"><!--pnid:pMIuP8bcIKYDGOmpiXBVAK-->职业模式完整化</span><span data-page-node-id="DSvckWHlQEhRk0WWxYeaV1" class="tm"><!--pnid:bIkkC1E4KPqKsIlVXdU1KB-->M4 – M8</span></div>
+      <div data-page-node-id="xWiUNv7UCR2Zsj5tO7OzC4" class="pb">
+        <div data-page-node-id="cMr7zlMhJ65KejaynesCVf">
+          <h4 data-page-node-id="AHe6J9ChImKz5hPwIGyhYN"><!--pnid:S69JVNHB95hiG9VRw0dK2m-->关键技术任务</h4>
+          <ul data-page-node-id="RLi5dxsqQUMs0Ub4frMmYZ">
+            <li data-page-node-id="cvUSeAeNeM0jHsWXh1XzB2"><b data-page-node-id="SFpQhDZkKhDovZ0r7t7ai7" style="color:var(--text)"><!--pnid:M490OxGNEFeBqcx6Hs1Bjd-->后勤护城河</b><!--pnid:f7U39DCY5Gs6tUAmY3QfHC-->：补给线图解算 + 指数衰减 R(t)=R₀·e^(−kt)</li>
+            <li data-page-node-id="LvTzxvvffskRfXjr0BeVWP"><b data-page-node-id="5GhjinsdLlKI6yyZUccumz" style="color:var(--text)"><!--pnid:2YWFhhn36m51yK8zUrpt1Y-->指挥官系统</b><!--pnid:7NXhneVfhEBbbt43f3HsfA-->：技能/特性/指挥半径加成</li>
+            <li data-page-node-id="0Sxe1IwO1lEurKSIDZi1TD"><b data-page-node-id="xkW9cl7CGG10YMFl1dGS9O" style="color:var(--text)"><!--pnid:Rf8KF4X8zI6DVRxVGeQAbP-->状态系统</b><!--pnid:vVevBGaMWV5LueEVvwFgWn-->：士气 / 疲劳 / 天气的 CF 系数乘积</li>
+            <li data-page-node-id="6I0Lf5St0G0KeMxKZ5nm3z"><!--pnid:za3eQZPnSQB5tsriD6ZpgS-->移动端优化：LOD 聚合、情境操作条、信息降噪</li>
+            <li data-page-node-id="kzBHy7YIcqfVnujUfiw4Hv"><!--pnid:BJyScGc6oVrVJUdMUI9qN5-->战报系统：事件流落库 + 结算卡片</li>
+          </ul>
+        </div>
+        <div data-page-node-id="cyRjoZDlSuLhCt1Lnn82VL">
+          <h4 data-page-node-id="e1t0AofoaKT8vb3XYl11Iw"><!--pnid:yVprxhzt7EoD3lBlK98rDJ-->交付物 / 指标</h4>
+          <ul data-page-node-id="qQQkqnE2IUxCy7gCRCFTy1">
+            <li data-page-node-id="xzXEyhTYjzDUYUawajWoLA"><!--pnid:BUjLh7QRxtnOb8zBO4fwuB-->职业模式 7 子系统全部可用</li>
+            <li data-page-node-id="UBvZf69SlP9wnfF2pSk8DA"><!--pnid:F9phZIGzJzsROHZY2aGheO-->数值平衡表外置，支持热更</li>
+            <li data-page-node-id="zAkrMxaQe6Ny206sr7qxSc"><!--pnid:LKofRoZlI1OO34yPXJl1dX-->战报可分享、可回放</li>
+          </ul>
+          <div data-page-node-id="RdISuYOxqhgNY4wWS82cEE" class="kpi"><span data-page-node-id="f5ke64mokJpXz5UT3rELI0" class="k"><!--pnid:Msp4wZZvpdqaPAi3byHfLZ-->大地图帧率≥45</span><span data-page-node-id="XgJa0AIZc52zpgXAs5J2R8" class="k"><!--pnid:fDFroC9x6EbixiwVmWImwv-->单局≤90min</span><span data-page-node-id="ESekGxJarijmJ0iDib4xvE" class="k"><!--pnid:60KfpQe8hpfHVM4hLyetzH-->CF 计算误差 0</span></div>
+          <p data-page-node-id="XgE8VrQFCXzeJ1yyyJllYO" style="margin-top:8px; color:var(--gold); font-size:12px"><!--pnid:iOfr5WABF8y5i5NPqqYeUr-->⚠ 后勤解算与低端机帧率是性能重点。</p>
+        </div>
+      </div>
+    </div>
+
+    <!--pnid:5tWTG2MhS66DpAk6FOlu98--><!-- P2 -->
+    <div data-page-node-id="hikuaw1xdvOHUrUTsUMsfL" class="phase">
+      <div data-page-node-id="3P6FhNP1DpzdoQ0bC6A1pF" class="ph"><span data-page-node-id="81ZEVEVmKePtKzF5gPeZOm" class="tag"><!--pnid:dWqHZOoyGAwi6CbtOTzI43-->P2</span><span data-page-node-id="p740RtqOpJkPVEUkBBFp95" class="nm"><!--pnid:5fwj3pb7A7UQdEMhCKhvC9-->平台与商业 · 正式发布 (MVP)</span><span data-page-node-id="tNHWAtWW8cQCmnOmFdcXFt" class="tm"><!--pnid:BKKClNnybFVp2iH0GxVl8B-->M8 – M12</span></div>
+      <div data-page-node-id="dbqsYjGAeSmjvp9chw7MxV" class="pb">
+        <div data-page-node-id="ZsYXFxCst7C2HdncFqxw1f">
+          <h4 data-page-node-id="57J81M44PUTWb3fFUXq4Ri"><!--pnid:t2DuPEruAaCFfZbAurd8wF-->关键技术任务</h4>
+          <ul data-page-node-id="2ldFG6yGJIa0TK8nD66lIS">
+            <li data-page-node-id="VWTLwFb3gxGOvw0BMgcXoy"><!--pnid:6Y5NNVvPqiWH5W2eDUX9CR-->内购：副本解锁 / 外观涂装，<b data-page-node-id="eue3XtKLygEXc6aILaizLL" style="color:var(--text)"><!--pnid:l1vakGezzHcVbcJ8RqE0IP-->禁 pay-to-win</b><!--pnid:pALUR8dqMB5brGxoOCP1yg--> 结构保障</li>
+            <li data-page-node-id="GCdONnFbnR3LsQN69rrzDp"><!--pnid:gy9XivTceMrWyZEnXyQS81-->账号 / 支付合规（苹果 / 谷歌 + 国内渠道）</li>
+            <li data-page-node-id="FSuqqEAi5QwmbL8zZvahId"><!--pnid:2y3erun9q71gc6JtnShwIH-->公会 / 排行榜服务（实时 + 异步刷新）</li>
+            <li data-page-node-id="DQgJ9tGKsYXUG6m4wkoX7N"><!--pnid:rb0BAsnMacpBxPPjB4ahMN-->异步回合成熟化 + 推送通知</li>
+            <li data-page-node-id="An6MRjUEre7vxoDqE8TyMa"><!--pnid:p79Hs0OlrUTGWSTzhxvOqH-->防沉迷接入实名与剩余时长</li>
+            <li data-page-node-id="A8rYjU3tCkEzoQcB60c5yf"><!--pnid:5qR5qsLWk54d58X7C4olbD-->运营后台 + 数据埋点上线</li>
+          </ul>
+        </div>
+        <div data-page-node-id="yMaMx1TnTR3p9hzY23hukt">
+          <h4 data-page-node-id="ZXlRg7VvFknpXcxdSTvr1h"><!--pnid:puJwRl89qgyxggsgskiYYU-->交付物 / 指标</h4>
+          <ul data-page-node-id="cXJce3j7q9dP31XNdzoaig">
+            <li data-page-node-id="CvyRrpzZu4tXoQ7SgLy13F"><!--pnid:JXbEDtiW8dwSeFUDkOCb9O-->MVP 正式上线（免费下载 + 内购）</li>
+            <li data-page-node-id="K7I0D6hympAozZ6qN7bQcr"><!--pnid:zfKGD5JB8NfAVSnM0pIZDO-->二战东线首发，低敏感副本铺量</li>
+            <li data-page-node-id="yVKKklLGxvli7R9MoEWOVz"><!--pnid:sbyONh9FEKx1SC7RbhV9ou-->合规分级全链路打通</li>
+          </ul>
+          <div data-page-node-id="JS9fcD4XmtdVIQaVPehN7d" class="kpi"><span data-page-node-id="LzCxoGdJRqDoaheW8z42YK" class="k"><!--pnid:feLsqc1FfFzjxDVS222OzY-->异步回合延迟＜3s</span><span data-page-node-id="EqkXwQXtXOPCLy2LXLtSwA" class="k"><!--pnid:0M5PNlJoZrJXKvYzyjgkrc-->支付成功率≥99%</span><span data-page-node-id="WfUTfm03mjXI8AlNSUVtjJ" class="k"><!--pnid:R1yN8L4hv9KhwZ74Gc5ItS-->留存 D1≥40%</span></div>
+          <p data-page-node-id="Zp5dvN7Ymxn0m8GP1a9Tzd" style="margin-top:8px; color:var(--gold); font-size:12px"><!--pnid:dGZG3Gg24wjTnqmUyN5HpG-->⚠ 内购合规与防沉迷是上线门禁。</p>
+        </div>
+      </div>
+    </div>
+
+    <!--pnid:ecSOUOItPn5mXoIqc5UDlI--><!-- P3 -->
+    <div data-page-node-id="XwBTjgKSo3BjPrghGWNbm3" class="phase">
+      <div data-page-node-id="EjZ0X9USiYqF0lnKJK008O" class="ph"><span data-page-node-id="ClDRIzUO8kwp4GQTgSS3Hc" class="tag"><!--pnid:UuHkUtiXLAzGKsgWPaIOvm-->P3</span><span data-page-node-id="pnB0jnOc3FmRnPs27mmYob" class="nm"><!--pnid:1Q14P2LQnfTaQ7ZS6qjUEz-->专业模式 (V2.0)</span><span data-page-node-id="f6kw16MkBqyBo9wTY078f3" class="tm"><!--pnid:nnsZ1LHfbZ1pIpE8ljA9kS-->M12 – M18</span></div>
+      <div data-page-node-id="07gTas7rwsSnlBbfgGagZo" class="pb">
+        <div data-page-node-id="q7Xmo93ntvdKOmL6zEbyno">
+          <h4 data-page-node-id="UBk2YgEZscHtEUxzfVZPCq"><!--pnid:nzGy2sSMCE9JzFs2g8oHgi-->关键技术任务</h4>
+          <ul data-page-node-id="3isOecoq8hkFVPxltoX3Hg">
+            <li data-page-node-id="69GTltufKfjqvbxZDtVJ0u"><b data-page-node-id="ScJij7d9kDkClfAe50kdRH" style="color:var(--text)"><!--pnid:epbcMTAtxgLuOqSjWlNfii-->规则开关层抽离</b><!--pnid:ZhIKVhDNhXppXgnSjQZWgx-->：四杠杆参数化，单代码基出多模式</li>
+            <li data-page-node-id="WLZvhxdDqyODXWDiCOsXT4"><!--pnid:0PZGaItAhmc0xOzID5sgUw-->AI 强度分层（搜索深度 + 随机性）</li>
+            <li data-page-node-id="K3km725J61cYrbT1QJD7HJ"><!--pnid:1hc9nRk8xVCvnPjnQEGAQL-->单局时长压缩至 30–60min（裁剪高级项）</li>
+            <li data-page-node-id="rMPlBHewJrjLT3czmJmZOr"><!--pnid:EgWJSh8z46rgCykKKsTK5b-->平衡数据反哺：基于 P2 实战数据调参</li>
+          </ul>
+        </div>
+        <div data-page-node-id="qn0F0Hyz7rnRBVnnWpUXPv">
+          <h4 data-page-node-id="2hMyqfhiFdcQLAE16yfcBR"><!--pnid:qmpbBDEOAeya3goEO3wztY-->交付物 / 指标</h4>
+          <ul data-page-node-id="bA9ylPDvfBAqBNA4ly3BRP">
+            <li data-page-node-id="0PkeDKyRJaX8ZNNKpkPCbY"><!--pnid:sZTOTNjxZVMBywJcGXxIan-->专业模式上线，承接休闲→硬核转化</li>
+            <li data-page-node-id="QnzMjhhlmXe8cVOHiw9INY"><!--pnid:H75VtjnLSvOfIQEod1wNxo-->难度曲线可配置，A/B 验证</li>
+          </ul>
+          <div data-page-node-id="YN6lbWQ6cKLCRaIGiE3Ilp" class="kpi"><span data-page-node-id="YfcoF8faGMblY5uEGN0Veu" class="k"><!--pnid:v1Q0MhGbWEuIsGpFCVtgTv-->单局 30–60min</span><span data-page-node-id="XT1aM1G7Qcp0N1BkMikTdb" class="k"><!--pnid:CadmE8KuNW9Zz6bDwKCuxu-->模式切换 0 代码分支</span></div>
+          <p data-page-node-id="fmyt9F9675yWZAPPvDDhFJ" style="margin-top:8px; color:var(--good); font-size:12px"><!--pnid:wFsLwwXjpa8GMGhPUG9hKl-->✓ 验证「一套内核多模式」假设。</p>
+        </div>
+      </div>
+    </div>
+
+    <!--pnid:XROxSbF9wan6xsVKMRc7bL--><!-- P4 -->
+    <div data-page-node-id="WblqkeUWlYWrXCbCWKHfMx" class="phase">
+      <div data-page-node-id="4gKIHJVdGEHyPrcfD2meKT" class="ph"><span data-page-node-id="gM44VfrX6f70cUkRm6mRab" class="tag"><!--pnid:qUm8zi9mZusCfKgXq944H8-->P4</span><span data-page-node-id="eCg4ZzrXlZOCChoXEdZ3o9" class="nm"><!--pnid:opzgH3i4m9LctLssvA5O4c-->UGC 与娱乐模式 (V3.0)</span><span data-page-node-id="gSAqyW2baQrtcXthLzaoHO" class="tm"><!--pnid:iEUlWUgBVDNiXII6rjxdCt-->M18 – M24</span></div>
+      <div data-page-node-id="IcOFQKTFLso4Qg4bEX7pDv" class="pb">
+        <div data-page-node-id="RIPUUjczv3TniH685NGgHn">
+          <h4 data-page-node-id="GUL7kXqpE5PtluhqXXcSbp"><!--pnid:kNPXeJNuFkn4B0NthZynG1-->关键技术任务</h4>
+          <ul data-page-node-id="snuOIPrdiwhpyDxbtGAHdh">
+            <li data-page-node-id="8ZVTbK7yOQU4UzAPjsWmHP"><b data-page-node-id="4qx4dkgMNHjNuYuBsHaKjv" style="color:var(--text)"><!--pnid:5Ye446mGO7nLQo9XPBZ3AP-->UGC 剧本编辑器</b><!--pnid:KjFcsrJayi2rUtX7mE2J9q-->：地形/单位笔刷 + 胜利条件 + 沙盒校验</li>
+            <li data-page-node-id="kUqKYTU3gJF60iXfz6WX3I"><!--pnid:EWhSu3OBFB6qWoA8CrDbMk-->UGC 审核管线：敏感题材自动隔离 + 人工复核</li>
+            <li data-page-node-id="Xjdmn4XPLCt6jKxcqkDt0L"><!--pnid:wJUPW8qYZeP1up0IA1iMgB-->娱乐模式：由职业模式删减抽象（砍补给线/疲劳/天气）</li>
+            <li data-page-node-id="3MbMqzXbWD1MR4tC2X7pfU"><!--pnid:8MRXpUMEacYWom8T86msnO-->图标化、强引导，单局 10–20min 拉新降槛</li>
+          </ul>
+        </div>
+        <div data-page-node-id="LHdgsbeVOw0IibT4JuDc36">
+          <h4 data-page-node-id="4Xl4OyU8SWCVBofBj3KAMr"><!--pnid:lVLjURRsjxNwsvUNIW8Gsz-->交付物 / 指标</h4>
+          <ul data-page-node-id="a6D6AHDsPAqwceTbTHphGM">
+            <li data-page-node-id="IHlZKUKIOcx3La2IFTgPfK"><!--pnid:XGG4ilHxPW8alvEC0PAPfv-->玩家可创作并发布副本（合规通过后可公开）</li>
+            <li data-page-node-id="BTFC4ILYsS6AxlCr8d4C6J"><!--pnid:C0k2FT1C8QJK622K961Hy0-->娱乐模式拉新，三模式闭环</li>
+          </ul>
+          <div data-page-node-id="wxixR5TOyh0N12dlipENoq" class="kpi"><span data-page-node-id="iYeGdvNs5aUGeJagjYDtEc" class="k"><!--pnid:c4EGLKTFv7Mgmx7LBMRBMD-->单局 10–20min</span><span data-page-node-id="qHJhB66IXPp5cTMvwrjFim" class="k"><!--pnid:a88hRVTNoOH1eAP0ocmbY5-->UGC 审核 SLA＜48h</span></div>
+          <p data-page-node-id="gloUabWTDmZ79pKYsI6ClP" style="margin-top:8px; color:var(--danger); font-size:12px"><!--pnid:Ttk1SMWgT5BgnCGZbCfNrI-->⚠ 合规不确定性是 UGC 发布的主要风险。</p>
+        </div>
+      </div>
+    </div>
+
+    <!--pnid:37kDrTmmyh1XpwqiHF3DAu--><!-- P5 -->
+    <div data-page-node-id="lqFNZVIPqMEMIJPv3uhPe2" class="phase">
+      <div data-page-node-id="cENwS9bfZg0uC8QlEkVA0P" class="ph"><span data-page-node-id="1W9xyYX5gARrmEc0k9Z6ck" class="tag"><!--pnid:676XNkQGH8Xh16hjv9qZuu-->P5</span><span data-page-node-id="cF900MVq5AVFTMZSTVr6Dq" class="nm"><!--pnid:Dq8eumwOXh8D8X9QQOWAjc-->智能化与持续运营</span><span data-page-node-id="R6gZnhOyzkNdMuo1jB7S64" class="tm"><!--pnid:sSVS3UB5p3fTEjAUQDKPHl-->M24+</span></div>
+      <div data-page-node-id="mDjQzDuyCTyzghzoLQa8lM" class="pb">
+        <div data-page-node-id="psw6WHzMvibqFnYgtkK9Rj">
+          <h4 data-page-node-id="kCZU2uO4TKkUdjHuyTKzen"><!--pnid:8mObffHCX3WGpiNcdN3yPw-->关键技术方向</h4>
+          <ul data-page-node-id="E51CvfzWZcdeTxBoZQ61af">
+            <li data-page-node-id="eRqEBF6byr7uQKz4xIWUHD"><!--pnid:ifdxxxrRaxSz2QKDKL8lMh-->ML 对手 / 动态难度（基于玩家行为建模）</li>
+            <li data-page-node-id="lvn9U8plakAMgJ21q7QRYr"><!--pnid:w0r1Vvt1PJC4ctYqbmx9eV-->内容工厂化：副本生成与平衡自动化</li>
+            <li data-page-node-id="4gEjwgWxcizDiovgMU7WKo"><!--pnid:iNaFuLsubbh3Qe0LZhMpTU-->数据反哺的实时平衡与个性化推荐</li>
+            <li data-page-node-id="prH5nB5pVMKLjK7eIQKP2b"><!--pnid:jKfVJ1eu3rQzjEY7qBNPx6-->全球同服 / 跨区域合规适配</li>
+          </ul>
+        </div>
+        <div data-page-node-id="ywbTFioarlkWwyhVg1ILP9">
+          <h4 data-page-node-id="ZlYPByPRHGh0Sm6uOt10qn"><!--pnid:PqbIAUy8J0PTJRMZBPOFOj-->长期指标</h4>
+          <ul data-page-node-id="75ZCwrWMHchU21J1nKqhgR">
+            <li data-page-node-id="yt9Q3GqxS2Vh579dEIjdkS"><!--pnid:nnPY5jMCPpnxit1VXq8xyj-->长线留存与 LTV 提升</li>
+            <li data-page-node-id="xW9PD4riDRKc3fFeskxMGs"><!--pnid:Z3DUFeaoiU2LKyJlhPawpK-->内容产能与合规成本持续优化</li>
+          </ul>
+          <div data-page-node-id="TxUE8R58kq2Kp0qB3Z0Vp2" class="kpi"><span data-page-node-id="5i9hRBfPwsujEZEwodSMy1" class="k"><!--pnid:wVlzXlsoCi0GzFM0iyWtIQ-->LTV↑</span><span data-page-node-id="qXLIlKsWGIcROqYB3hQrD8" class="k"><!--pnid:xaaunpVhDo1vZf000LpgIz-->内容产能↑</span><span data-page-node-id="rhrMJRjGRQ559TZQKYeJ1t" class="k"><!--pnid:vVmWO00p8GWxFxYrWNktrR-->合规成本↓</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!--pnid:SgZHs4tOju7W1tlH6Vt5Gs--><!-- ========== 关键挑战 ========== -->
+  <div data-page-node-id="xQWidLQ2xnCWVF60041gAn" class="sec">
+    <h2 data-page-node-id="IJOaLPG9C0sumrSMKQpCvX"><!--pnid:Tew02aI7QB2XKU7aEKOJWN-->五 · 关键技术挑战与对策</h2>
+    <div data-page-node-id="H70wk2XOnAd2rxQ5AWn0G8" class="grid2">
+      <div data-page-node-id="6oxBlCT0r7U4hhRUq9TXMk" class="box"><h3 data-page-node-id="8ZW195mQsnoaO5PLfBbIEB"><!--pnid:mBNGSjG2zR8xJAqRv5W3Hd-->确定性仿真内核</h3><p data-page-node-id="HPmJBFlKVCWOgnWxD948A6"><!--pnid:iA6uaV1X8lQiA4cAz9gb0t-->浮点/随机/顺序差异会破坏一致性与回放。对策：固定步长 + 种子 RNG + 无平台依赖的纯逻辑层，配自动对拍测试门禁。</p></div>
+      <div data-page-node-id="AWT2YKEeAnuzxNe4rIYnJi" class="box"><h3 data-page-node-id="sBRBHILPukRCEf9PJggqWu"><!--pnid:ePEMn2pps4Jf7gCX9pLmgg-->后勤指数衰减解算</h3><p data-page-node-id="NwNu5QzrtSSfHd2o5PDm5u"><!--pnid:6Aiy6qjQ7fjblEGnPrCQbX-->补给线随距离 R(t)=R₀·e^(−kt) 衰减，需图遍历 + 缓存。对策：增量解算 + 脏标记，避免每帧全量重算，保移动端帧率。</p></div>
+      <div data-page-node-id="cX16Ntnb733bjkaqBc5g20" class="box"><h3 data-page-node-id="mOpC4eHrYuU5rT4MoPAiYm"><!--pnid:1la900Jsv8WqBUydg2J4En-->多模式规则开关架构</h3><p data-page-node-id="08paH7kvMcXnczlUEof4CV"><!--pnid:TF7P7l1M8y1bMxncK73jRS-->单代码基出三模式易腐化。对策：模式 = 四杠杆参数集（特性开关 + 数据配置），模式逻辑全部数据驱动，禁止散落 if 分支。</p></div>
+      <div data-page-node-id="CDDorzZ3AcMzoXSQBowQlc" class="box"><h3 data-page-node-id="hWVzZPVx06Zh4MjTCELFrC"><!--pnid:lNohLUcbcwosxSciMXV1F5-->移动端性能 / LOD</h3><p data-page-node-id="vcuBP5qrZjjZ4R3vpPpcx0"><!--pnid:G2IjXjU33x4KVn3leEzYvJ-->大地图 + 大量六边形单位压垮中低端机。对策：低缩放合并单位/简化地形，高缩放展开细节；对象池 + 批渲染。</p></div>
+      <div data-page-node-id="HfIKin6in4B0QXgfGmyb0X" class="box"><h3 data-page-node-id="ENi2o8tn0JNENxv9lz3gbJ"><!--pnid:UAIaB4f2tWrcBV21S18wfq-->异步回合一致性</h3><p data-page-node-id="GqvxZm9uwARGoKmn8bTVuJ"><!--pnid:zMy2tk0Pi5FKNNGUhuAor1-->离线推进与冲突解决。对策：Event Sourcing 指令流 + 云端确定性重算，客户端仅提交指令，天然支持断线续玩。</p></div>
+      <div data-page-node-id="99vD9G344tgua2mM1Vxu4t" class="box"><h3 data-page-node-id="yLqB08FkBswKjyuzOH9vxS"><!--pnid:hIquQHb1OpTfWFdvQyQljZ-->合规内建</h3><p data-page-node-id="7rZV5EXdJdzuWEJFPCkOFZ"><!--pnid:FUI6xtUm29VbcmxCahLIFs-->题材敏感与未成年人保护是红线。对策：分级标签库 + 自动化初筛 + 人工复核双轨；防沉迷接入实名/时长，高敏感题材默认隔离。</p></div>
+    </div>
+  </div>
+
+  <!--pnid:AsqxaN8DZwgQFNxcBAYutH--><!-- ========== 工程组织与KPI ========== -->
+  <div data-page-node-id="usWpgVxUIzNbQn24TmEwOr" class="sec">
+    <h2 data-page-node-id="lKSOUjLYScxJkWIuFZxtqW"><!--pnid:fl5BEr4d1ktrrhMuBURK93-->六 · 工程组织与发布门禁</h2>
+    <div data-page-node-id="9fg6eEZ7XYoKfVgq2eos4d" class="grid2">
+      <div data-page-node-id="kZ9PWR0MzFQ7z9kuQSCV3m" class="box"><h3 data-page-node-id="mecVArdlXKKysHStNp4qxi"><!--pnid:o3M2UfOQ0sSA5LyTvY9sjz-->团队构成（建议）</h3>
+        <ul data-page-node-id="NJ84pXQUcCxuNzwcnbFf5i">
+          <li data-page-node-id="gxLjAndFDMNYZRiZPTg4wX"><!--pnid:x9VoBXeHk48kSEl9qPqEow-->引擎组：仿真内核 / 六边形 / 后勤 / 渲染</li>
+          <li data-page-node-id="zgSMtYQVNdj388ZckcPm8B"><!--pnid:QneHT96BukOExZkT3WkaXU-->客户端组：Flutter / UI / 移动适配</li>
+          <li data-page-node-id="k9eMOl4oJC5atueaiObZc9"><!--pnid:W8nYAdcObEMCGN46M7Shfv-->服务端组：对局 / 异步回合 / 社交 / 支付</li>
+          <li data-page-node-id="827eST7YyIBR7ojVPeeFSc"><!--pnid:AG5ISmgDV4XRHE1AC484qY-->AI 组：效用 AI / 搜索 / 平衡</li>
+          <li data-page-node-id="fZbtDwMiGTMXFzYz0YtnEe"><!--pnid:nAGAd5ox9KkxHHpCgj5RRe-->工具链组：DAG 编辑器 / 数值 / UGC / 合规</li>
+          <li data-page-node-id="l6yxtFa7ONDX8KXrJMs6SZ"><!--pnid:cdnBuvrxBbwHlrbhTMKjTC-->QA：内核对拍 / 性能 / 合规测试</li>
+        </ul>
+      </div>
+      <div data-page-node-id="ffmyUGotO2Y31436P7wxke" class="box"><h3 data-page-node-id="eh18aj6brGRojP7PPioAaz"><!--pnid:YhlPBkgEfrMkIUuC5ZMgW3-->研发节奏</h3>
+        <ul data-page-node-id="INggnaXDKxNRRLmOWSfQtV">
+          <li data-page-node-id="y5Ih5ie4kHIk1ZEYZXqztg"><!--pnid:idJzOBG2TMm15ZUdKcjfJI-->双周迭代 + 垂直切片（每阶段先出可玩切片）</li>
+          <li data-page-node-id="XXikttxXFU2ZMHHW9SOaCz"><!--pnid:koRKhd8LqDCnOb2y5FGct4-->内核单测覆盖率门禁；回放对拍纳入 CI</li>
+          <li data-page-node-id="v0xpBocfBVfzAOWavvGRWw"><!--pnid:apRB5MKUJ4iUoUAK3ScGzc-->灰度发布 + AB；监控崩溃/帧率/埋点</li>
+        </ul>
+        <h3 data-page-node-id="ZzSCHU8KXl9276mhnIL39Q" style="margin-top:14px"><!--pnid:hxbGyIoy59orpxMptP6wtO-->发布门禁 KPI</h3>
+        <div data-page-node-id="NYkmzWKil6MzQv9ZP7kW7S" class="kpi"><span data-page-node-id="i3Ug5ujPAZaRBokh4dCYuw" class="k"><!--pnid:d4743nVEj5PeQbIqa2Iqdd-->启动≤4s</span><span data-page-node-id="VQurCPiS4IT6230Y4CCa44" class="k"><!--pnid:TCUUPgVmINJPFpKyOgM4s8-->战斗≥45fps</span><span data-page-node-id="Spya2uNzFjtQ2aHabWkji1" class="k"><!--pnid:5YvBbCRQDs118Gv7DChOAb-->崩溃＜0.5%</span><span data-page-node-id="SIgN5FCfbasc38d2uZ3olO" class="k"><!--pnid:EAVHJJbqXwezgeidkaHMgE-->包体≤300MB</span><span data-page-node-id="Q4Y3eGx1bMNydHQurKcVLK" class="k"><!--pnid:sG2J69plKUIn3iKEhf3WoP-->异步延迟＜3s</span><span data-page-node-id="vLU6YlxYtRh2J2Tc5jUkwc" class="k"><!--pnid:10jWonOD0scsdDeD9XTIFP-->合规 100% 过审</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!--pnid:dfvzXQo9gZVMgPObigIPmy--><!-- ========== 风险 ========== -->
+  <div data-page-node-id="FUUqkHSidULPRccdDOGXzR" class="sec">
+    <h2 data-page-node-id="dVN6TnhBt4CfYNLebtQkcZ"><!--pnid:F0uir7REvsUa1CfFTR0Ryc-->七 · 主要风险与依赖</h2>
+    <div data-page-node-id="jAYqJdIe3UIz2pAWrIkuqG" class="risk"><span data-page-node-id="uGzxXKOwOrX4cKJrhjpO01" class="rv hi"><!--pnid:mG3UUEYZj1wSCuOwBylv5Z-->高</span><div data-page-node-id="Fl28VXFvhncm0PuW1EVikO" class="rb"><b data-page-node-id="xHGYpHGsPCvce3CqqCGRhs"><!--pnid:3ubi7t4YpLZneODrgxDXC3-->仿真内核延期</b><!--pnid:gJX1thE0ItyUlmhi7Qd4Cb--> → 阻塞所有模式与副本；对策：P0 集中资源，内核先于一切，设确定性对拍门禁。</div></div>
+    <div data-page-node-id="fn0Yofpab4dQTqKI7d3wc9" class="risk"><span data-page-node-id="Sbiem8qNSg7MCIN4qVXmyo" class="rv hi"><!--pnid:ns6eUOqXEeZGNczK1gsizq-->高</span><div data-page-node-id="4pGFTyk2wxNIghhXQswhE4" class="rb"><b data-page-node-id="y0ZfqlhJjSHRG37RGirOAa"><!--pnid:FoApD71DTc8bMuPEmBxV0g-->合规不确定性</b><!--pnid:Ma8lCJFbRdJGjRONEXor9K--> → 影响高敏感题材与 UGC 发布节奏；对策：合规前置设计，分级隔离，预留评估周期。</div></div>
+    <div data-page-node-id="baDlECI57MXU7WmUZzCi6A" class="risk"><span data-page-node-id="zP2wSzN1TGP9pFM4sm5YJ2" class="rv mid"><!--pnid:WIEPzmcAcKp3bIS0KXnXrh-->中</span><div data-page-node-id="XbRxmSf7PRAS9v4gxMTgzB" class="rb"><b data-page-node-id="BVYiBAnhD4e81Di0UtSUQG"><!--pnid:yTPyn5pny6Gnet6JdjtaDD-->移动端性能</b><!--pnid:3VbJR3oh56TzJyyiCNWJNT--> → 影响硬核信息密度下的留存；对策：LOD + 信息降噪 + 性能基线机型纳入门禁。</div></div>
+    <div data-page-node-id="RrGv8yuFZu38abWoG4chqZ" class="risk"><span data-page-node-id="BGnQPLcLunWaRkBdmqBVfc" class="rv mid"><!--pnid:e544jMsPxGe61wN90ikx7k-->中</span><div data-page-node-id="F2m6dU46qOSvIrRbP33yLJ" class="rb"><b data-page-node-id="8EN6bLiWvDuA8BjwK6eLxV"><!--pnid:a1oUW6LjqQC4PHVwbkwLJV-->AI 难度失衡</b><!--pnid:0YVOgruTTJ2VcM8A4VdnWA--> → 三模式体验落差；对策：规则开关 + 搜索深度分层，数据驱动调参。</div></div>
+    <div data-page-node-id="vm2HyHDXeSHyOjv5HAulOf" class="risk"><span data-page-node-id="OAOjfYzpFdO0R8WatKxtLQ" class="rv lo"><!--pnid:dSgDztR3CfSDjduoeM0uDv-->低</span><div data-page-node-id="K9Hd69cN2aKGsXZ1fEOvg5" class="rb"><b data-page-node-id="4uTv0izCIsmbYSPcTWnmAC"><!--pnid:iLeahG9F5b0PVNFSHLrGbH-->多模式代码腐化</b><!--pnid:nt54JeAfCrwokHX7654TOD--> → 维护成本上升；对策：模式参数化，禁止散落分支，架构评审。</div></div>
+  </div>
+
+  <p data-page-node-id="T2qqcmJ5FIURc0TpvqO4pJ" class="note"><!--pnid:PaKvEeX9CR9q18VYuJc0gY-->本路线图与《产品设计文档 v1.0》四大支柱、MVP（职业模式 + 二战东线 + 移动端 + 免费下载）、三模式四杠杆、合规敏感度分级、内购公平底线、异步回合等决策一一对应。技术选型为建议值，落地应以团队工程能力与成本约束为准。</p>
+
+  <div data-page-node-id="XizrjVwOxDH2fAM4tmSoZV" class="footer"><!--pnid:EnYp94azPYaFGRcfl9adz3-->铁幕兵棋 HEXFRONT · 产品技术路线图 v0.1 · 原创设计 · 对齐《产品设计文档 v1.0》</div>
+</div>
+</body>
+</html>
