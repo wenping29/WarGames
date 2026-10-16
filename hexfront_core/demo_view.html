@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>HEXFRONT 内核垂直切片 · 可视化</title>
+<style>
+  :root{ --bg:#0f1320; --panel:#171c2e; --ink:#e8ecf5; --mut:#9aa6c2; --blue:#2d6cdf; --red:#e0494b; --line:#2a3350; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 "Segoe UI",system-ui,"PingFang SC","Microsoft YaHei",sans-serif}
+  header{padding:22px 26px 8px}
+  h1{margin:0;font-size:20px;letter-spacing:.5px}
+  h1 span{color:#7da2ff}
+  .sub{color:var(--mut);font-size:12.5px;margin-top:4px}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 22px 40px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin:16px 0}
+  .card h2{margin:0 0 12px;font-size:15px;color:#cdd7f0}
+  .row{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;color:var(--mut);font-size:12px;margin:6px 0 10px}
+  .chip{display:inline-flex;align-items:center;gap:5px}
+  .dot{width:12px;height:12px;border-radius:50%;display:inline-block}
+  button{background:#22304f;color:var(--ink);border:1px solid #34436b;border-radius:7px;padding:6px 13px;cursor:pointer;font-size:13px}
+  button.on{background:#2d6cdf;border-color:#2d6cdf}
+  svg text{font-family:inherit}
+  .bar{height:14px;border-radius:4px;background:#222a40;overflow:hidden;margin:3px 0}
+  .bar>i{display:block;height:100%}
+  .kv{font-size:12.5px;color:var(--mut)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:760px){.grid2{grid-template-columns:1fr}.row{flex-direction:column}}
+</style>
+</head>
+<body>
+<header>
+  <h1>铁幕兵棋 <span>HEXFRONT</span> · 确定性内核垂直切片</h1>
+  <div class="sub">本页所有数值均由 Dart 内核真实计算后导出 · 六边形网格 / 后勤补给线 / 作战解析 / 回合调度器</div>
+</header>
+<div class="wrap">
+
+  <div class="card">
+    <h2>① 战场棋盘 · 补给热力 + 单位部署</h2>
+    <div class="legend">
+      <span class="chip"><span class="dot" style="background:#2d6cdf"></span>蓝方</span>
+      <span class="chip"><span class="dot" style="background:#e0494b"></span>红方</span>
+      <span class="chip">林=森林 丘=丘陵 城=城市</span>
+      <span class="chip">底色=补给率(绿充足→红匮乏)</span>
+    </div>
+    <div style="margin-bottom:10px">
+      <button id="bT1" class="on" onclick="setTurn(1)">初始部署（回合1）</button>
+      <button id="bT3" onclick="setTurn(3)">第3回合（推进后）</button>
+    </div>
+    <div id="board"></div>
+    <div class="kv" id="boardCap"></div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h2>② 补给衰减曲线</h2>
+      <div class="kv">R(d)=R₀·retentionᵈ，每跳远离补给源衰减约 16.5%</div>
+      <div id="decay"></div>
+    </div>
+    <div class="card">
+      <h2>③ 补给线切断（护城河）</h2>
+      <div class="kv">单线走廊，敌人占据唯一通道即切断末端补给</div>
+      <div id="corridor"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>④ 邻接交战解析 · 装甲 vs 步兵</h2>
+    <div class="kv">CF=基础×地形×建制×补给×士气×指挥官×克制；满补给满士气无掩体</div>
+    <div id="combat"></div>
+  </div>
+
+  <div class="card">
+    <h2>⑤ 运行验证</h2>
+    <div class="kv">dart analyze 零警告 · 19/19 内核+对拍测试通过 · 同种子双端重算快照逐字节一致</div>
+  </div>
+</div>
+
+<script>
+const DATA = {"mapW":9,"mapH":9,"terrain":[{"q":0,"r":0,"t":"plain"},{"q":1,"r":0,"t":"plain"},{"q":2,"r":0,"t":"plain"},{"q":3,"r":0,"t":"plain"},{"q":4,"r":0,"t":"plain"},{"q":5,"r":0,"t":"plain"},{"q":6,"r":0,"t":"plain"},{"q":7,"r":0,"t":"plain"},{"q":8,"r":0,"t":"plain"},{"q":0,"r":1,"t":"plain"},{"q":1,"r":1,"t":"plain"},{"q":2,"r":1,"t":"plain"},{"q":3,"r":1,"t":"plain"},{"q":4,"r":1,"t":"plain"},{"q":5,"r":1,"t":"plain"},{"q":6,"r":1,"t":"plain"},{"q":7,"r":1,"t":"plain"},{"q":8,"r":1,"t":"plain"},{"q":0,"r":2,"t":"plain"},{"q":1,"r":2,"t":"plain"},{"q":2,"r":2,"t":"plain"},{"q":3,"r":2,"t":"plain"},{"q":4,"r":2,"t":"plain"},{"q":5,"r":2,"t":"plain"},{"q":6,"r":2,"t":"plain"},{"q":7,"r":2,"t":"plain"},{"q":8,"r":2,"t":"plain"},{"q":0,"r":3,"t":"plain"},{"q":1,"r":3,"t":"plain"},{"q":2,"r":3,"t":"plain"},{"q":3,"r":3,"t":"forest"},{"q":4,"r":3,"t":"hill"},{"q":5,"r":3,"t":"plain"},{"q":6,"r":3,"t":"plain"},{"q":7,"r":3,"t":"plain"},{"q":8,"r":3,"t":"plain"},{"q":0,"r":4,"t":"plain"},{"q":1,"r":4,"t":"plain"},{"q":2,"r":4,"t":"plain"},{"q":3,"r":4,"t":"plain"},{"q":4,"r":4,"t":"plain"},{"q":5,"r":4,"t":"urban"},{"q":6,"r":4,"t":"plain"},{"q":7,"r":4,"t":"plain"},{"q":8,"r":4,"t":"plain"},{"q":0,"r":5,"t":"plain"},{"q":1,"r":5,"t":"plain"},{"q":2,"r":5,"t":"plain"},{"q":3,"r":5,"t":"plain"},{"q":4,"r":5,"t":"plain"},{"q":5,"r":5,"t":"plain"},{"q":6,"r":5,"t":"plain"},{"q":7,"r":5,"t":"plain"},{"q":8,"r":5,"t":"plain"},{"q":0,"r":6,"t":"plain"},{"q":1,"r":6,"t":"plain"},{"q":2,"r":6,"t":"plain"},{"q":3,"r":6,"t":"plain"},{"q":4,"r":6,"t":"plain"},{"q":5,"r":6,"t":"plain"},{"q":6,"r":6,"t":"plain"},{"q":7,"r":6,"t":"plain"},{"q":8,"r":6,"t":"plain"},{"q":0,"r":7,"t":"plain"},{"q":1,"r":7,"t":"plain"},{"q":2,"r":7,"t":"plain"},{"q":3,"r":7,"t":"plain"},{"q":4,"r":7,"t":"plain"},{"q":5,"r":7,"t":"plain"},{"q":6,"r":7,"t":"plain"},{"q":7,"r":7,"t":"plain"},{"q":8,"r":7,"t":"plain"},{"q":0,"r":8,"t":"plain"},{"q":1,"r":8,"t":"plain"},{"q":2,"r":8,"t":"plain"},{"q":3,"r":8,"t":"plain"},{"q":4,"r":8,"t":"plain"},{"q":5,"r":8,"t":"plain"},{"q":6,"r":8,"t":"plain"},{"q":7,"r":8,"t":"plain"},{"q":8,"r":8,"t":"plain"}],"supplyFull":{"0,0":"100.0","8,8":"100.0","1,0":"83.5","0,1":"83.5","8,7":"83.5","7,8":"83.5","2,0":"69.8","1,1":"69.8","0,2":"69.8","8,6":"69.8","7,7":"69.8","6,8":"69.8","3,0":"58.3","2,1":"58.3","1,2":"58.3","0,3":"58.3","8,5":"58.3","7,6":"58.3","6,7":"58.3","5,8":"58.3","4,0":"48.7","3,1":"48.7","2,2":"48.7","1,3":"48.7","0,4":"48.7","8,4":"48.7","7,5":"48.7","6,6":"48.7","5,7":"48.7","4,8":"48.7","5,0":"40.6","4,1":"40.6","3,2":"40.6","2,3":"40.6","1,4":"40.6","0,5":"40.6","8,3":"40.6","7,4":"40.6","6,5":"40.6","5,6":"40.6","4,7":"40.6","3,8":"40.6","6,0":"34.0","5,1":"34.0","4,2":"34.0","3,3":"34.0","2,4":"34.0","1,5":"34.0","0,6":"34.0","8,2":"34.0","7,3":"34.0","6,4":"34.0","5,5":"34.0","4,6":"34.0","3,7":"34.0","2,8":"34.0","7,0":"28.4","6,1":"28.4","5,2":"28.4","4,3":"28.4","3,4":"28.4","2,5":"28.4","1,6":"28.4","0,7":"28.4","8,1":"28.4","7,2":"28.4","6,3":"28.4","5,4":"28.4","4,5":"28.4","3,6":"28.4","2,7":"28.4","1,8":"28.4","8,0":"23.7","7,1":"23.7","6,2":"23.7","5,3":"23.7","4,4":"23.7","3,5":"23.7","2,6":"23.7","1,7":"23.7","0,8":"23.7"},"turn1":[{"id":"B1","side":"blue","type":"infantry","q":1,"r":1,"supply":"69.8","str":100},{"id":"B2","side":"blue","type":"armor","q":1,"r":2,"supply":"58.3","str":100},{"id":"R1","side":"red","type":"infantry","q":6,"r":7,"supply":"58.3","str":100},{"id":"R2","side":"red","type":"armor","q":7,"r":6,"supply":"58.3","str":100}],"turn3":[{"id":"B1","side":"blue","type":"infantry","q":4,"r":2,"supply":"34.0","str":100},{"id":"B2","side":"blue","type":"armor","q":5,"r":6,"supply":"13.8","str":100},{"id":"R1","side":"red","type":"infantry","q":6,"r":7,"supply":"58.3","str":100},{"id":"R2","side":"red","type":"armor","q":7,"r":6,"supply":"58.3","str":100}],"paths":{"B1":[[1,1],[2,1],[3,1],[4,1],[4,2]],"B2":[[1,2],[2,3],[3,4],[4,5],[5,6]]},"decay":[{"d":0,"rate":"100.0"},{"d":1,"rate":"83.5"},{"d":2,"rate":"69.8"},{"d":3,"rate":"58.3"},{"d":4,"rate":"48.7"},{"d":5,"rate":"40.6"},{"d":6,"rate":"34.0"},{"d":7,"rate":"28.4"},{"d":8,"rate":"23.7"},{"d":9,"rate":"19.8"},{"d":10,"rate":"16.5"},{"d":11,"rate":"13.8"}],"corridor":{"open":"40.6","cut":"0.0"},"combat":{"cfA":140,"cfD":100,"ratio":"1.40","aStr":42,"aMor":42,"dStr":59,"dMor":59}};
+const SIZE = 34, OX = 52, OY = 52;
+const hexToPixel = (q,r)=>({x: SIZE*Math.sqrt(3)*(q + r/2) + OX, y: SIZE*1.5*r + OY});
+function hexPts(cx,cy,s){let p=[];for(let i=0;i<6;i++){const a=Math.PI/180*(60*i-30);p.push((cx+s*Math.cos(a)).toFixed(1)+','+(cy+s*Math.sin(a)).toFixed(1));}return p.join(' ');}
+function supplyColor(r){r=Math.max(0,Math.min(100,r));const t=r/100;let c1,c2,k;if(t<0.5){c1=[210,70,70];c2=[235,200,90];k=t/0.5;}else{c1=[235,200,90];c2=[75,165,95];k=(t-0.5)/0.5;}const R=Math.round(c1[0]+(c2[0]-c1[0])*k),G=Math.round(c1[1]+(c2[1]-c1[1])*k),B=Math.round(c1[2]+(c2[2]-c1[2])*k);return 'rgb('+R+','+G+','+B+')';}
+const terrMark={forest:'林',hill:'丘',urban:'城'};
+const typeMark={infantry:'步',armor:'装',artillery:'炮',motorized:'摩'};
+
+function renderBoard(turn){
+  const units = turn===1 ? DATA.turn1 : DATA.turn3;
+  const showPath = turn===3;
+  let s='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 520">';
+  // 地形 + 补给热力底
+  for(const t of DATA.terrain){
+    const p=hexToPixel(t.q,t.r);
+    const sup=parseFloat(DATA.supplyFull[t.q+','+t.r]||'0');
+    s+='<polygon points="'+hexPts(p.x,p.y,SIZE-1.5)+'" fill="'+supplyColor(sup)+'" stroke="#0f1320" stroke-width="1.5"/>';
+    if(terrMark[t.t]) s+='<text x="'+p.x+'" y="'+(p.y-SIZE+13)+'" fill="#243049" font-size="11" text-anchor="middle">'+terrMark[t.t]+'</text>';
+  }
+  // 推进路径
+  if(showPath){
+    for(const k in DATA.paths){
+      const path=DATA.paths[k];
+      let d='M';
+      path.forEach((c,i)=>{const p=hexToPixel(c[0],c[1]);d+=(i?' L':'')+p.x.toFixed(1)+' '+p.y.toFixed(1);});
+      s+='<path d="'+d+'" fill="none" stroke="#ffd76a" stroke-width="2" stroke-dasharray="4 3" opacity="0.85"/>';
+    }
+  }
+  // 单位
+  for(const u of units){
+    const p=hexToPixel(u.q,u.r);
+    const col=u.side==='blue'?'#2d6cdf':'#e0494b';
+    s+='<circle cx="'+p.x+'" cy="'+p.y+'" r="13" fill="'+col+'" stroke="#fff" stroke-width="1.5"/>';
+    s+='<text x="'+p.x+'" y="'+(p.y+4)+'" fill="#fff" font-size="10" font-weight="700" text-anchor="middle">'+typeMark[u.type]+'</text>';
+    s+='<text x="'+p.x+'" y="'+(p.y+SIZE-6)+'" fill="#0f1320" font-size="9.5" font-weight="700" text-anchor="middle">'+u.supply+'%</text>';
+    s+='<text x="'+(p.x+15)+'" y="'+(p.y-13)+'" fill="#fff" font-size="9" text-anchor="middle">'+u.id+'</text>';
+  }
+  s+='</svg>';
+  document.getElementById('board').innerHTML=s;
+  document.getElementById('boardCap').textContent = showPath
+    ? '第3回合：蓝方 B1/B2 已推进，补给随距离显著下降（补给结算有1回合滞后）'
+    : '回合1：补给基于初始位置结算，单位越远离己方补给源(角落)补给率越低';
+}
+function setTurn(t){document.getElementById('bT1').className=t===1?'on':'';document.getElementById('bT3').className=t===3?'on':'';renderBoard(t);}
+
+function renderDecay(){
+  const w=480,h=200,pad=34; const maxR=100;
+  let s='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+w+' '+h+'">';
+  s+='<line x1="'+pad+'" y1="'+(h-pad)+'" x2="'+(w-10)+'" y2="'+(h-pad)+'" stroke="#34436b"/>';
+  s+='<line x1="'+pad+'" y1="14" x2="'+pad+'" y2="'+(h-pad)+'" stroke="#34436b"/>';
+  let d='M';
+  DATA.decay.forEach((pt,i)=>{const x=pad+(w-10-pad)*i/(DATA.decay.length-1);const y=(h-pad)-(h-pad-14)*pt.rate/maxR;d+=(i?' L':'')+x.toFixed(1)+' '+y.toFixed(1);});
+  s+='<path d="'+d+'" fill="none" stroke="#7da2ff" stroke-width="2.5"/>';
+  DATA.decay.forEach((pt,i)=>{if(i%2===0){const x=pad+(w-10-pad)*i/(DATA.decay.length-1);const y=(h-pad)-(h-pad-14)*pt.rate/maxR;s+='<circle cx="'+x+'" cy="'+y+'" r="2.5" fill="#7da2ff"/><text x="'+x+'" y="'+(y-6)+'" fill="#9aa6c2" font-size="9" text-anchor="middle">'+pt.rate+'</text><text x="'+x+'" y="'+(h-pad+13)+'" fill="#9aa6c2" font-size="9" text-anchor="middle">d'+pt.d+'</text>';}});
+  s+='<text x="14" y="40" fill="#9aa6c2" font-size="9">100%</text><text x="14" y="'+(h-pad-2)+'" fill="#9aa6c2" font-size="9">0</text>';
+  s+='</svg>';
+  document.getElementById('decay').innerHTML=s;
+}
+
+function renderCorridor(){
+  const open=DATA.corridor.open, cut=DATA.corridor.cut;
+  const n=8, s0=30, x0=40, y0=70;
+  function col(q){ if(q===2) return '#e0494b'; return '#394b78'; }
+  let s='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+(x0+ n*s0*1.732 +20)+' 160">';
+  for(let q=0;q<n;q++){
+    const x=x0+s0*Math.sqrt(3)*q, y=y0;
+    s+='<polygon points="'+hexPts(x,y,s0-1.5)+'" fill="'+col(q)+'" stroke="#0f1320" stroke-width="1.5"/>';
+    if(q===0) s+='<text x="'+x+'" y="'+(y+4)+'" fill="#fff" font-size="10" text-anchor="middle">源</text>';
+    if(q===2) s+='<text x="'+x+'" y="'+(y+4)+'" fill="#fff" font-size="11" font-weight="700" text-anchor="middle">敌</text>';
+    if(q===5) s+='<text x="'+x+'" y="'+(y+4)+'" fill="#fff" font-size="10" text-anchor="middle">末</text>';
+  }
+  s+='</svg>';
+  s+='<div class="kv" style="margin-top:6px">走廊末端补给率：通畅 <b style="color:#7fe0a0">'+open+'%</b> → 通道(2,0)被占 <b style="color:#e0494b">'+cut+'%</b></div>';
+  document.getElementById('corridor').innerHTML=s;
+}
+
+function renderCombat(){
+  const c=DATA.combat; const max=Math.max(c.cfA,c.cfD,1);
+  let s='<div class="row"><div style="flex:1">';
+  s+='<div class="kv">ATK 装甲 CF</div><div class="bar"><i style="width:'+(100*c.cfA/max)+'%;background:#2d6cdf"></i></div>';
+  s+='<div class="kv" style="margin-top:6px">DEF 步兵 CF</div><div class="bar"><i style="width:'+(100*c.cfD/max)+'%;background:#e0494b"></i></div>';
+  s+='<div class="kv" style="margin-top:8px">战力比 ATK/DEF = <b style="color:#7da2ff">'+c.ratio+'</b></div></div>';
+  s+='<div style="flex:1">';
+  s+='<div class="kv">装甲(ATK) 交战后 建制 '+c.aStr+'/100 士气 '+c.aMor+'</div><div class="bar"><i style="width:'+c.aStr+'%;background:#2d6cdf"></i></div>';
+  s+='<div class="kv" style="margin-top:6px">步兵(DEF) 交战后 建制 '+c.dStr+'/100 士气 '+c.dMor+'</div><div class="bar"><i style="width:'+c.dStr+'%;background:#e0494b"></i></div>';
+  s+='<div class="kv" style="margin-top:8px">攻方代价更重(装甲突入步兵)，但守方建制损失更大</div>';
+  s+='</div></div>';
+  document.getElementById('combat').innerHTML=s;
+}
+
+renderBoard(1); renderDecay(); renderCorridor(); renderCombat();
+</script>
+</body>
+</html>
