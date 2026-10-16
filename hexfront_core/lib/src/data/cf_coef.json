@@ -1,0 +1,26 @@
+{
+  "scale": 10000,
+  "basePower": { "infantry": 100, "armor": 140, "artillery": 80, "motorized": 110 },
+  "terrainK": { "plain": 10000, "forest": 9000, "hill": 11000, "mountain": 8000, "urban": 10500, "water": 6000, "impassable": 0 },
+  "terrainCover": { "plain": 0, "forest": 3000, "hill": 2500, "mountain": 2000, "urban": 4000, "water": 1000, "impassable": 0 },
+  "terrainMobility": { "plain": 1, "forest": 2, "hill": 2, "mountain": 3, "urban": 2, "water": 4, "impassable": 9999 },
+  "counterMatrix": {
+    "infantry>armor": 13000,
+    "armor>infantry": 8000,
+    "armor>artillery": 15000,
+    "artillery>infantry": 9000,
+    "motorized>infantry": 11000,
+    "infantry>motorized": 9000
+  },
+  "routThreshold": 20,
+  "routStrengthLoss": 10,
+  "routRecoveryMorale": 50,
+  "moralePerCasualty": 100,
+  "combatFatigue": 15,
+  "fatigueRecover": 10,
+  "commanderPerLevel": 500,
+  "commandRadius": 3,
+  "rangePenaltyFixed": 2000,
+  "artilleryRange": 3,
+  "defaultRange": 1
+}

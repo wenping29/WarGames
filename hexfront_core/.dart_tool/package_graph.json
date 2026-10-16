@@ -1,0 +1,14 @@
+{
+  "roots": [
+    "hexfront_core"
+  ],
+  "packages": [
+    {
+      "name": "hexfront_core",
+      "version": "0.1.0",
+      "dependencies": [],
+      "devDependencies": []
+    }
+  ],
+  "configVersion": 1
+}

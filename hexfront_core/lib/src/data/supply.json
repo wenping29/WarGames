@@ -1,0 +1,9 @@
+{
+  "R0": 10000,
+  "k": 0.18,
+  "retentionFixed": 8353,
+  "scale": 10000,
+  "lowSupplyThreshold": 4000,
+  "lowSupplyMoraleDrop": 8,
+  "supplyMoraleRecover": 3
+}

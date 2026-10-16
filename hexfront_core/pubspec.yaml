@@ -1,0 +1,7 @@
+name: hexfront_core
+description: Deterministic hex wargame simulation core for HEXFRONT (铁幕兵棋). Pure Dart, no Flutter dependency. P0 vertical slice.
+version: 0.1.0
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+# No runtime dependencies: deterministic and offline-buildable.
+# For CI unit testing with the `test` package, add: dev_dependencies: test: ^1.24.0
